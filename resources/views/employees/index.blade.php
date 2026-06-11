@@ -9,7 +9,10 @@
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
             <h2 style="font-size:18px;font-weight:600;color:#f1f5f9;">Liste des employés</h2>
             <div style="display:flex;gap:8px;">
-               
+                <a href="{{ route('employees.wizard.create') }}" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                    Assistant
+                </a>
                 <a href="{{ route('employees.create') }}" class="btn-outline" style="text-decoration:none;">+ Nouvel employé</a>
             </div>
         </div>
