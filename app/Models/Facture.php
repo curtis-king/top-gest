@@ -18,6 +18,7 @@ class Facture extends Model
         'raison_social',
         'contact_id',
         'agence_id',
+        'objet',
     ];
 
     protected function casts(): array

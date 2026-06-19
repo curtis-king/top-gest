@@ -88,6 +88,7 @@ class FactureController extends Controller
             'raison_social' => ['nullable', 'string', 'max:255'],
             'contact_id' => ['nullable', 'exists:contacts,id'],
             'agence_id' => ['nullable', 'exists:agences,id'],
+            'objet' => ['nullable', 'string', 'max:500'],
         ]);
 
         Facture::create($validated);
@@ -123,6 +124,7 @@ class FactureController extends Controller
             'raison_social' => ['nullable', 'string', 'max:255'],
             'contact_id' => ['nullable', 'exists:contacts,id'],
             'agence_id' => ['nullable', 'exists:agences,id'],
+            'objet' => ['nullable', 'string', 'max:500'],
         ]);
 
         $facture->update($validated);

@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AffectationTacheController;
+use App\Http\Controllers\CategorieDocumentController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\CategorieProduitController;
 use App\Http\Controllers\DepotController;
 use App\Http\Controllers\MouvementStockController;
@@ -62,6 +64,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('employees/{employee}/pdf', [EmployeePdfController::class, 'preview'])->name('employees.pdf');
     Route::get('employees/{employee}/pdf/stream', [EmployeePdfController::class, 'stream'])->name('employees.pdf.stream');
     Route::get('employees/{employee}/pdf/download', [EmployeePdfController::class, 'download'])->name('employees.pdf.download');
+    Route::get('employees/{employee}/contrat/stream', [EmployeePdfController::class, 'streamContrat'])->name('employees.contrat.stream');
+    Route::get('employees/{employee}/contrat/download', [EmployeePdfController::class, 'downloadContrat'])->name('employees.contrat.download');
 
     Route::prefix('employees/wizard')->name('employees.wizard.')->group(function () {
         Route::get('/', [EmployeeWizardController::class, 'create'])->name('create');
@@ -168,4 +172,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('mouvements-stocks', [MouvementStockController::class, 'index'])->name('mouvements-stocks.index');
     Route::get('mouvements-stocks/create', [MouvementStockController::class, 'create'])->name('mouvements-stocks.create');
     Route::post('mouvements-stocks', [MouvementStockController::class, 'store'])->name('mouvements-stocks.store');
+
+    // Archives
+    Route::resource('categories-documents', CategorieDocumentController::class)->parameters([
+        'categories-documents' => 'categoriesDocument',
+    ]);
+
+    Route::get('documents/{document}/preview', [DocumentController::class, 'preview'])->name('documents.preview');
+    Route::get('documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
+    Route::resource('documents', DocumentController::class)->parameters([
+        'documents' => 'document',
+    ])->except(['edit', 'update']);
 });
