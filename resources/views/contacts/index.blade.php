@@ -17,6 +17,26 @@
             </div>
         @endif
 
+        {{-- Stats --}}
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:20px;">
+            <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.15);border-radius:12px;padding:16px;text-align:center;">
+                <div style="font-size:24px;font-weight:700;color:#60a5fa;">{{ $stats['total'] }}</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;">Contacts</div>
+            </div>
+            <div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.15);border-radius:12px;padding:16px;text-align:center;">
+                <div style="font-size:24px;font-weight:700;color:#4ade80;">{{ $stats['client'] }}</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;">Clients</div>
+            </div>
+            <div style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.15);border-radius:12px;padding:16px;text-align:center;">
+                <div style="font-size:24px;font-weight:700;color:#facc15;">{{ $stats['fournisseur'] }}</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;">Fournisseurs</div>
+            </div>
+            <div style="background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.15);border-radius:12px;padding:16px;text-align:center;">
+                <div style="font-size:24px;font-weight:700;color:#94a3b8;">{{ $stats['autre'] }}</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;">Autres</div>
+            </div>
+        </div>
+
         <form method="GET" action="{{ route('contacts.index') }}" style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
             <div style="flex:1;min-width:200px;position:relative;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;position:absolute;left:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.3);pointer-events:none;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>

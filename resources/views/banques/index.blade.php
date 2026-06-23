@@ -17,6 +17,14 @@
             </div>
         @endif
 
+        {{-- Stats --}}
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:20px;">
+            <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.15);border-radius:12px;padding:16px;text-align:center;">
+                <div style="font-size:24px;font-weight:700;color:#60a5fa;">{{ $stats['total'] }}</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;">Banques</div>
+            </div>
+        </div>
+
         <form method="GET" action="{{ route('banques.index') }}" style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
             <div style="flex:1;min-width:200px;position:relative;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;position:absolute;left:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.3);pointer-events:none;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>

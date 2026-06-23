@@ -40,7 +40,17 @@ class ProjectController extends Controller
             return $p;
         });
 
-        return view('projects.index', compact('projects', 'sort', 'direction'));
+        $all = Project::with('taches')->get();
+        $stats = [
+            'total' => $all->count(),
+            'actif' => $all->filter(fn($p) => $p->status_project?->value === 'actif')->count(),
+            'en_cours' => $all->filter(fn($p) => $p->status_project?->value === 'en_cours')->count(),
+            'termine' => $all->filter(fn($p) => $p->status_project?->value === 'termine')->count(),
+            'annule' => $all->filter(fn($p) => $p->status_project?->value === 'annule')->count(),
+            'total_cout' => $all->sum(fn($p) => $p->taches->sum('cout_tache')),
+        ];
+
+        return view('projects.index', compact('projects', 'sort', 'direction', 'stats'));
     }
 
     public function create(): View

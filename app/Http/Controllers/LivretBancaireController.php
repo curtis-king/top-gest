@@ -53,11 +53,25 @@ class LivretBancaireController extends Controller
         $sort = request('sort', 'created_at');
         $direction = request('direction', 'desc');
 
+        $allQuery = LivretBancaire::query();
+        if (!auth()->user()->isAdmin()) {
+            $userEmp = Employee::where('user_id', auth()->id())->first();
+            if ($userEmp && $userEmp->agence_id) {
+                $allQuery->where('agence_id', $userEmp->agence_id);
+            }
+        }
+        $stats = [
+            'total' => $allQuery->count(),
+            'depots' => (clone $allQuery)->where('type_action', 'depot')->sum('montant'),
+            'retraits' => (clone $allQuery)->where('type_action', 'retrait')->sum('montant'),
+            'solde' => (clone $allQuery)->whereIn('type_action', ['depot', 'interet'])->sum('montant') - (clone $allQuery)->whereIn('type_action', ['retrait', 'frais'])->sum('montant'),
+        ];
+
         $banques = Banque::pluck('nom', 'id');
         $agences = Agence::pluck('name_agence', 'id');
         $types = TypeActionLivret::cases();
 
-        return view('livrets_bancaires.index', compact('livrets', 'sort', 'direction', 'banques', 'agences', 'types'));
+        return view('livrets_bancaires.index', compact('livrets', 'sort', 'direction', 'banques', 'agences', 'types', 'stats'));
     }
 
     public function create(): View

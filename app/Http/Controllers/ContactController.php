@@ -41,7 +41,22 @@ class ContactController extends Controller
         $sort = request('sort', 'created_at');
         $direction = request('direction', 'desc');
 
-        return view('contacts.index', compact('contacts', 'sort', 'direction'));
+        $allQuery = Contact::query();
+        if (!auth()->user()->isAdmin()) {
+            $userEmp = Employee::where('user_id', auth()->id())->first();
+            if ($userEmp && $userEmp->agence_id) {
+                $allQuery->where('agence_id', $userEmp->agence_id);
+            }
+        }
+        $all = $allQuery->get();
+        $stats = [
+            'total' => $all->count(),
+            'client' => $all->filter(fn($c) => $c->type_contact?->value === 'client')->count(),
+            'fournisseur' => $all->filter(fn($c) => $c->type_contact?->value === 'fournisseur')->count(),
+            'autre' => $all->filter(fn($c) => $c->type_contact?->value === 'autre')->count(),
+        ];
+
+        return view('contacts.index', compact('contacts', 'sort', 'direction', 'stats'));
     }
 
     public function create(): View

@@ -27,7 +27,11 @@ class BanqueController extends Controller
         $sort = request('sort', 'created_at');
         $direction = request('direction', 'desc');
 
-        return view('banques.index', compact('banques', 'sort', 'direction'));
+        $stats = [
+            'total' => Banque::count(),
+        ];
+
+        return view('banques.index', compact('banques', 'sort', 'direction', 'stats'));
     }
 
     public function create(): View

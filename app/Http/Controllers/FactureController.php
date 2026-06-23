@@ -59,11 +59,27 @@ class FactureController extends Controller
             return $f;
         });
 
+        $allFactures = Facture::with('items');
+        if (!auth()->user()->isAdmin()) {
+            $userEmp = Employee::where('user_id', auth()->id())->first();
+            if ($userEmp && $userEmp->agence_id) {
+                $allFactures->where('agence_id', $userEmp->agence_id);
+            }
+        }
+        $all = $allFactures->get();
+        $stats = [
+            'total' => $all->count(),
+            'payee' => $all->filter(fn($f) => $f->statut_facture?->value === 'payee')->count(),
+            'impayee' => $all->filter(fn($f) => $f->statut_facture?->value === 'impayee')->count(),
+            'montant_payee' => $all->filter(fn($f) => $f->statut_facture?->value === 'payee')->sum(fn($f) => $f->items->sum(fn($i) => $i->quantite * $i->prix_unitaire)),
+            'montant_impayee' => $all->filter(fn($f) => $f->statut_facture?->value === 'impayee')->sum(fn($f) => $f->items->sum(fn($i) => $i->quantite * $i->prix_unitaire)),
+        ];
+
         $types = TypeFacture::cases();
         $statuts = StatutFacture::cases();
         $agences = Agence::pluck('name_agence', 'id');
 
-        return view('factures.index', compact('factures', 'sort', 'direction', 'types', 'statuts', 'agences'));
+        return view('factures.index', compact('factures', 'sort', 'direction', 'types', 'statuts', 'agences', 'stats'));
     }
 
     public function create(): View
