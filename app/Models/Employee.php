@@ -76,4 +76,9 @@ class Employee extends Model
     {
         return $this->hasMany(AffectationTache::class);
     }
+
+    public function produits(): HasMany
+    {
+        return $this->hasMany(Produit::class);
+    }
 }

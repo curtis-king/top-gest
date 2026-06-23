@@ -229,8 +229,37 @@
 
 </div>
 
-<div style="margin-top:20px;display:flex;gap:12px;">
+<div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;">
     <a href="{{ route('employees.edit', $employee) }}" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">Modifier</a>
+
+    @if($employee->dossier)
+        @php
+            $tc = $employee->dossier->type_contrat?->value;
+            $contratLabel = $tc === 'stage' ? 'Attestation de stage' : 'Contrat de travail';
+            $contratIcon  = $tc === 'stage' ? '🎓' : '📄';
+        @endphp
+        <a href="{{ route('employees.contrat.stream', $employee) }}"
+           target="_blank"
+           style="padding:10px 18px;background:rgba(37,99,235,.15);border:1px solid rgba(37,99,235,.35);border-radius:10px;color:#60a5fa;text-decoration:none;font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:6px;transition:all .25s ease;"
+           onmouseover="this.style.background='rgba(37,99,235,.25)'"
+           onmouseout="this.style.background='rgba(37,99,235,.15)'">
+            {{ $contratIcon }} {{ $contratLabel }}
+        </a>
+        <a href="{{ route('employees.contrat.download', $employee) }}"
+           style="padding:10px 18px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:10px;color:#34d399;text-decoration:none;font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:6px;transition:all .25s ease;"
+           onmouseover="this.style.background='rgba(16,185,129,.2)'"
+           onmouseout="this.style.background='rgba(16,185,129,.1)'">
+            ⬇ Télécharger
+        </a>
+    @endif
+
+    <a href="{{ route('employees.pdf', $employee) }}" target="_blank"
+       style="padding:10px 18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:rgba(255,255,255,.6);text-decoration:none;font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:6px;transition:all .25s ease;"
+       onmouseover="this.style.background='rgba(255,255,255,.08)'"
+       onmouseout="this.style.background='rgba(255,255,255,.04)'">
+        Fiche PDF
+    </a>
+
     <form method="POST" action="{{ route('employees.destroy', $employee) }}" style="display:inline;" onsubmit="return confirm('Confirmer la suppression ?');">
         @csrf
         @method('DELETE')

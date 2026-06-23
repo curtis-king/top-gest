@@ -10,6 +10,7 @@ use App\Models\Employee;
 use App\Models\Facture;
 use App\Models\ItemFacture;
 use App\Http\Controllers\Traits\Sortable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -103,6 +104,7 @@ class FactureController extends Controller
             'raison_social' => ['nullable', 'string', 'max:255'],
             'contact_id' => ['nullable', 'exists:contacts,id'],
             'agence_id' => ['nullable', 'exists:agences,id'],
+            'objet' => ['nullable', 'string', 'max:500'],
         ]);
 
         Facture::create($validated);
@@ -138,6 +140,7 @@ class FactureController extends Controller
             'raison_social' => ['nullable', 'string', 'max:255'],
             'contact_id' => ['nullable', 'exists:contacts,id'],
             'agence_id' => ['nullable', 'exists:agences,id'],
+            'objet' => ['nullable', 'string', 'max:500'],
         ]);
 
         $facture->update($validated);
@@ -152,6 +155,22 @@ class FactureController extends Controller
 
         return redirect()->route('factures.index')
             ->with('success', 'Facture supprimée avec succès.');
+    }
+
+    public function search(Request $request): JsonResponse
+    {
+        $q = trim($request->input('q', ''));
+
+        $factures = Facture::where('numero_facture', 'like', "%{$q}%")
+            ->orWhere('raison_social', 'like', "%{$q}%")
+            ->limit(10)
+            ->get(['id', 'numero_facture', 'raison_social']);
+
+        return response()->json($factures->map(fn($f) => [
+            'id'   => $f->id,
+            'text' => $f->numero_facture,
+            'sub'  => $f->raison_social,
+        ]));
     }
 
     public function manage(Facture $facture): View

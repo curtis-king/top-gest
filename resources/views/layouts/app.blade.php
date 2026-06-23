@@ -382,6 +382,52 @@
 
                 <div class="nav-group">
                     <div class="nav-group-header" onclick="toggleGroup(this)">
+                        <span>Stock</span>
+                        <span class="arrow">&#9654;</span>
+                    </div>
+                    <div class="nav-group-body">
+                        <a href="{{ route('produits.index') }}" class="sidebar-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                            Produits
+                        </a>
+                        <a href="{{ route('stocks.index') }}" class="sidebar-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                            État des stocks
+                        </a>
+                        <a href="{{ route('mouvements-stocks.index') }}" class="sidebar-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+                            Mouvements
+                        </a>
+                        <a href="{{ route('depots.index') }}" class="sidebar-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/><path d="M9 21V12h6v9"/></svg>
+                            Dépôts
+                        </a>
+                        <a href="{{ route('categories-produits.index') }}" class="sidebar-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M4 4h16M9 4v16M15 4v16"/></svg>
+                            Catégories
+                        </a>
+                    </div>
+                </div>
+
+                <div class="nav-group">
+                    <div class="nav-group-header" onclick="toggleGroup(this)">
+                        <span>Archives</span>
+                        <span class="arrow">&#9654;</span>
+                    </div>
+                    <div class="nav-group-body">
+                        <a href="{{ route('documents.index') }}" class="sidebar-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                            Documents
+                        </a>
+                        <a href="{{ route('categories-documents.index') }}" class="sidebar-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M4 4h16M9 4v16M15 4v16"/></svg>
+                            Catégories
+                        </a>
+                    </div>
+                </div>
+
+                <div class="nav-group">
+                    <div class="nav-group-header" onclick="toggleGroup(this)">
                         <span>Système</span>
                         <span class="arrow">&#9654;</span>
                     </div>

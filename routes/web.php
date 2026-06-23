@@ -1,6 +1,13 @@
 <?php
 
 use App\Http\Controllers\AffectationTacheController;
+use App\Http\Controllers\CategorieDocumentController;
+use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\CategorieProduitController;
+use App\Http\Controllers\DepotController;
+use App\Http\Controllers\MouvementStockController;
+use App\Http\Controllers\ProduitController;
+use App\Http\Controllers\StockController;
 use App\Http\Controllers\AgenceController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -54,7 +61,11 @@ Route::middleware(['auth'])->group(function () {
         'employees' => 'employee',
     ]);
 
-    Route::get('employees/{employee}/pdf', [EmployeePdfController::class, 'fiche'])->name('employees.pdf');
+    Route::get('employees/{employee}/pdf', [EmployeePdfController::class, 'preview'])->name('employees.pdf');
+    Route::get('employees/{employee}/pdf/stream', [EmployeePdfController::class, 'stream'])->name('employees.pdf.stream');
+    Route::get('employees/{employee}/pdf/download', [EmployeePdfController::class, 'download'])->name('employees.pdf.download');
+    Route::get('employees/{employee}/contrat/stream', [EmployeePdfController::class, 'streamContrat'])->name('employees.contrat.stream');
+    Route::get('employees/{employee}/contrat/download', [EmployeePdfController::class, 'downloadContrat'])->name('employees.contrat.download');
 
     Route::prefix('employees/wizard')->name('employees.wizard.')->group(function () {
         Route::get('/', [EmployeeWizardController::class, 'create'])->name('create');
@@ -113,6 +124,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::delete('affectation-taches/{affectationTache}/inline', [AffectationTacheController::class, 'destroyInline'])->name('affectation-taches.destroy-inline');
 
+    Route::get('contacts/search', [ContactController::class, 'search'])->name('contacts.search');
     Route::resource('contacts', ContactController::class)->parameters([
         'contacts' => 'contact',
     ]);
@@ -125,6 +137,7 @@ Route::middleware(['auth'])->group(function () {
         'livrets-bancaires' => 'livretBancaire',
     ]);
 
+    Route::get('factures/search', [FactureController::class, 'search'])->name('factures.search');
     Route::resource('factures', FactureController::class)->parameters([
         'factures' => 'facture',
     ]);
@@ -133,9 +146,41 @@ Route::middleware(['auth'])->group(function () {
     Route::post('factures/{facture}/statut', [FactureController::class, 'updateStatut'])->name('factures.statut');
     Route::post('factures/{facture}/items', [FactureController::class, 'storeItem'])->name('factures.items.store');
     Route::delete('items-facture/{itemFacture}', [FactureController::class, 'destroyItem'])->name('factures.items.destroy');
-    Route::get('factures/{facture}/pdf', [FacturePdfController::class, 'download'])->name('factures.pdf');
+    Route::get('factures/{facture}/pdf', [FacturePdfController::class, 'preview'])->name('factures.pdf');
+    Route::get('factures/{facture}/pdf/stream', [FacturePdfController::class, 'stream'])->name('factures.pdf.stream');
+    Route::get('factures/{facture}/pdf/download', [FacturePdfController::class, 'download'])->name('factures.pdf.download');
 
     Route::resource('users', UserController::class)->parameters([
         'users' => 'user',
     ]);
+
+    // Stock
+    Route::resource('categories-produits', CategorieProduitController::class)->parameters([
+        'categories-produits' => 'categorieProduit',
+    ]);
+
+    Route::resource('depots', DepotController::class)->parameters([
+        'depots' => 'depot',
+    ]);
+
+    Route::resource('produits', ProduitController::class)->parameters([
+        'produits' => 'produit',
+    ]);
+
+    Route::get('stocks', [StockController::class, 'index'])->name('stocks.index');
+
+    Route::get('mouvements-stocks', [MouvementStockController::class, 'index'])->name('mouvements-stocks.index');
+    Route::get('mouvements-stocks/create', [MouvementStockController::class, 'create'])->name('mouvements-stocks.create');
+    Route::post('mouvements-stocks', [MouvementStockController::class, 'store'])->name('mouvements-stocks.store');
+
+    // Archives
+    Route::resource('categories-documents', CategorieDocumentController::class)->parameters([
+        'categories-documents' => 'categoriesDocument',
+    ]);
+
+    Route::get('documents/{document}/preview', [DocumentController::class, 'preview'])->name('documents.preview');
+    Route::get('documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
+    Route::resource('documents', DocumentController::class)->parameters([
+        'documents' => 'document',
+    ])->except(['edit', 'update']);
 });

@@ -7,6 +7,7 @@ use App\Models\Agence;
 use App\Models\Contact;
 use App\Models\Employee;
 use App\Http\Controllers\Traits\Sortable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -126,5 +127,21 @@ class ContactController extends Controller
 
         return redirect()->route('contacts.index')
             ->with('success', 'Contact supprimé avec succès.');
+    }
+
+    public function search(Request $request): JsonResponse
+    {
+        $q = trim($request->input('q', ''));
+
+        $contacts = Contact::where('raison_social', 'like', "%{$q}%")
+            ->orWhere('nom_complet', 'like', "%{$q}%")
+            ->limit(10)
+            ->get(['id', 'raison_social', 'nom_complet', 'type_contact']);
+
+        return response()->json($contacts->map(fn($c) => [
+            'id'  => $c->id,
+            'text' => $c->raison_social ?: $c->nom_complet,
+            'sub'  => $c->type_contact?->value,
+        ]));
     }
 }

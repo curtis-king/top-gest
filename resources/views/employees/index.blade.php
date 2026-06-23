@@ -63,7 +63,7 @@
                             </div>
                         </div>
                         <div style="display:flex;gap:4px;">
-                            <a href="{{ route('employees.wizard.edit', $employee) }}" style="width:32px;height:32px;border-radius:8px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.15);display:flex;align-items:center;justify-content:center;color:#4ade80;text-decoration:none;transition:all .15s;" onmouseover="this.style.background='rgba(74,222,128,.2)'" onmouseout="this.style.background='rgba(74,222,128,.1)'" title="Assistant">
+                            <a href="{{ route('employees.wizard.edit', $employee) }}" style="width:32px;height:32px;border-radius:8px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.15);display:flex;align-items:center;justify-content:center;color:#4ade80;text-decoration:none;transition:all .15s;" onmouseover="this.style.background='rgba(74,222,128,.2)'" onmouseout="this.style.background='rgba(74,222,128,.1)'" title="Dossier employé">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
                             </a>
                             <a href="{{ route('employees.show', $employee) }}" style="width:32px;height:32px;border-radius:8px;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.15);display:flex;align-items:center;justify-content:center;color:#60a5fa;text-decoration:none;transition:all .15s;" onmouseover="this.style.background='rgba(96,165,250,.2)'" onmouseout="this.style.background='rgba(96,165,250,.1)'" title="Voir">

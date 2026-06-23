@@ -183,7 +183,7 @@
 </div>
 
 <div style="margin-top:20px;display:flex;gap:12px;">
-    <a href="{{ route('factures.pdf', $facture) }}" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;" target="_blank">Imprimer la facture</a>
+    <a href="{{ route('factures.pdf', $facture) }}" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">Aperçu / Imprimer</a>
     <a href="{{ route('factures.edit', $facture) }}" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#f1f5f9;">Modifier</a>
     <form method="POST" action="{{ route('factures.destroy', $facture) }}" style="display:inline;" onsubmit="return confirm('Confirmer la suppression ?');">
         @csrf

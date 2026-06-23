@@ -4,76 +4,278 @@
     <meta charset="utf-8">
     <title>Facture {{ $facture->numero_facture }}</title>
     <style>
-        body { font-family: 'DejaVu Sans', sans-serif; font-size: 11px; color: #1e293b; margin: 0; padding: 30px; }
-        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #2563eb; }
-        .header h1 { font-size: 22px; color: #2563eb; margin: 0; }
-        .header .numero { font-size: 14px; color: #64748b; }
-        .infos { display: flex; justify-content: space-between; margin-bottom: 30px; }
-        .infos > div { width: 45%; }
-        .infos h3 { font-size: 11px; text-transform: uppercase; color: #94a3b8; margin: 0 0 6px 0; letter-spacing: 1px; }
-        .infos p { margin: 2px 0; font-size: 12px; color: #334155; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        table th { background: #f1f5f9; color: #475569; font-size: 10px; text-transform: uppercase; letter-spacing: .5px; padding: 10px 8px; text-align: left; }
-        table td { padding: 10px 8px; border-bottom: 1px solid #e2e8f0; font-size: 12px; }
-        table td:not(:first-child) { text-align: right; }
-        .total { text-align: right; font-size: 16px; font-weight: bold; color: #16a34a; padding-top: 10px; border-top: 2px solid #e2e8f0; }
-        .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 10px; color: #94a3b8; text-align: center; }
-        .statut { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
-        .badge-payee { background: #dcfce7; color: #16a34a; }
-        .badge-impayee { background: #fee2e2; color: #dc2626; }
-        .badge-partielle { background: #fef3c7; color: #d97706; }
-        .badge-annulee { background: #e2e8f0; color: #64748b; }
-        .badge-brouillon { background: #e2e8f0; color: #64748b; }
-        @page { margin: 0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DejaVu Sans', sans-serif;
+            font-size: 12px;
+            color: #111;
+        }
+
+        @page {
+            margin: 0;
+            size: A4 portrait;
+        }
+
+        /* ── Fond de page (image exportée depuis fond_facture.pdf) ── */
+        .bg-page {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+        }
+        .bg-page img { width: 100%; height: 100%; }
+
+        /* ── Pied de page fixe ── */
+        .page-footer {
+            position: fixed;
+            bottom: 7mm;
+            left: 0; right: 0;
+            text-align: center;
+            font-size: 9px;
+            color: #333;
+            border-top: 0.5px solid #999;
+            padding-top: 3px;
+        }
+
+        /* ── Corps ── */
+        .page {
+            padding: 22mm 20mm 35mm 20mm;
+        }
+
+        /* Titre */
+        .facture-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #006ed9;
+            letter-spacing: 3px;
+            margin-bottom: 6px;
+        }
+
+        .title-sep {
+            border: none;
+            border-top: 1.5px solid #006ed9;
+            margin-bottom: 10px;
+        }
+
+        /* Info client + logo */
+        .header-table { width: 100%; margin-bottom: 14px; }
+        .header-table td { vertical-align: top; padding: 0; }
+
+        .client-info div { line-height: 1.8; font-size: 12px; }
+        .client-info strong { font-weight: bold; }
+
+        .logo-cell { text-align: right; }
+        .logo-cell img { width: 100px; height: auto; }
+        .company-name {
+            font-size: 15px;
+            font-weight: bold;
+            color: #006ed9;
+            margin-top: 4px;
+        }
+        .company-sub { font-size: 10px; color: #555; }
+
+        /* OBJET */
+        .objet {
+            font-size: 12.5px;
+            margin-bottom: 8px;
+        }
+        .objet-label {
+            font-weight: bold;
+            font-style: italic;
+            text-decoration: underline;
+        }
+        .objet-text { font-weight: bold; font-style: italic; }
+
+        /* DOIT */
+        .doit {
+            font-size: 12.5px;
+            font-weight: bold;
+            font-style: italic;
+            margin-bottom: 12px;
+        }
+
+        /* Tableau items */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .items-table thead tr {
+            background-color: #006ed9;
+            color: #fff;
+        }
+        .items-table thead th {
+            padding: 8px 6px;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+            border: 0.5px solid #0058b0;
+        }
+        .items-table thead th:first-child { text-align: left; }
+
+        .items-table tbody tr { background: #fff; }
+        .items-table tbody tr:nth-child(even) { background: #f4f7fc; }
+
+        .items-table tbody td {
+            padding: 7px 6px;
+            font-size: 11px;
+            text-align: center;
+            border-bottom: 0.5px solid #dde4ec;
+            border-left: 0.5px solid #dde4ec;
+            border-right: 0.5px solid #dde4ec;
+        }
+        .items-table tbody td:first-child { text-align: left; }
+
+        /* Lignes totaux intégrées dans la table */
+        .row-net td {
+            background: #dce5f0;
+            font-weight: bold;
+            padding: 6px 5px;
+            border: 0.5px solid #bfcfe0;
+        }
+        .row-tva td {
+            background: #eef2f8;
+            padding: 5px 5px;
+            border: 0.5px solid #dde4ec;
+        }
+        .row-ttc td {
+            background: #006ed9;
+            color: #fff;
+            font-weight: bold;
+            font-size: 12px;
+            padding: 8px 6px;
+            border: 0.5px solid #0058b0;
+        }
+
+        /* Montant en lettres */
+        .amount-words {
+            font-style: italic;
+            font-size: 11.5px;
+            margin: 18px 0 16px 0;
+            line-height: 1.55;
+        }
+
+        /* Signature — fixée en bas de page, au-dessus du footer */
+        .signature-area {
+            position: fixed;
+            bottom: 22mm;
+            right: 20mm;
+            text-align: center;
+            font-size: 12px;
+            font-style: italic;
+        }
+        .signature-title {
+            font-weight: bold;
+            margin-bottom: 36px;
+        }
+        .signature-line { border-top: 0.5px solid #333; display: inline-block; width: 140px; }
+        .signature-sub { font-size: 10px; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div>
-            <h1>FACTURE</h1>
-            <div class="numero">{{ $facture->numero_facture }}</div>
-        </div>
-        <div style="text-align:right;">
-            <div style="font-size:14px;font-weight:600;color:#1e293b;">{{ $facture->agence?->name_agence ?? 'MyGest' }}</div>
-            <div style="font-size:11px;color:#64748b;margin-top:4px;">
-                {{ $facture->agence?->adresse ?? '' }}<br>
-                {{ $facture->agence?->numero_telephone ?? '' }}<br>
-                {{ $facture->agence?->adresse_email ?? '' }}
-            </div>
-        </div>
+
+@php
+    // ── Infos entreprise (fond facture) ──────────────────────────
+    $NIU    = 'M26000000797821C';
+    $RCCM   = 'CG-BZV-01-2026-B12';
+    $SCIEN  = '2162866';
+    $SCIET  = '2162866015';
+    $COMPTE = '10335710009/92';
+
+    // ── Chargement des relations ──────────────────────────────────
+    $facture->loadMissing(['items', 'contact', 'agence']);
+
+    $contact   = $facture->contact;
+    $net       = $facture->items->sum(fn($i) => $i->quantite * $i->prix_unitaire);
+    $tva       = (int) round($net * 0.10);
+    $ttc       = $net + $tva;
+
+    $typeLabel = match($facture->type_facture?->value) {
+        'proforma' => 'PROFORMA',
+        'avoir'    => 'AVOIR',
+        'achat'    => 'ACHAT',
+        default    => '',
+    };
+
+    $clientNom = $contact?->raison_social
+              ?? $contact?->nom_complet
+              ?? $facture->raison_social
+              ?? '—';
+
+    // Formatage nombre → CFA (1.017.500)
+    $fmt = fn($n) => number_format((float)$n, 0, ',', '.');
+
+    $logoPath = public_path('images/logo topinfo.png');
+    $fondPath = public_path('images/fond_facture.png');
+@endphp
+
+{{-- Fond de page --}}
+@if(file_exists($fondPath))
+<div class="bg-page">
+    <img src="{{ $fondPath }}">
+</div>
+@endif
+
+{{-- Pied de page fixe --}}
+<div class="page-footer">
+    NIU : {{ $NIU }} &nbsp;&nbsp;&nbsp; RCCM {{ $RCCM }} &nbsp;&nbsp;&nbsp;
+    SCIEN: {{ $SCIEN }} &nbsp;&nbsp; SCIET: {{ $SCIET }} &nbsp;&nbsp;&nbsp;
+    N° Compte : {{ $COMPTE }}
+</div>
+
+<div class="page">
+
+    {{-- ── Titre ── --}}
+    <div class="facture-title">FACTURE &nbsp; {{ $typeLabel }}</div>
+    <hr class="title-sep">
+
+    {{-- ── En-tête : infos client + logo ── --}}
+    <table class="header-table">
+        <tr>
+            <td style="width:55%;">
+                <div class="client-info">
+                    <div><strong>Numéro :</strong> {{ $facture->numero_facture }}</div>
+                    <div><strong>Date :</strong> {{ $facture->date_facture?->format('d-m-Y') ?? '—' }}</div>
+                    <div><strong>Client :</strong> {{ $clientNom }}</div>
+                    @if($contact?->adresse)
+                        <div><strong>BP :</strong> {{ $contact->adresse }}</div>
+                    @endif
+                    @if($contact?->telephone)
+                        <div><strong>Tel :</strong> {{ $contact->telephone }}</div>
+                    @endif
+                    <div><strong>Interlocuteur :</strong> {{ $clientNom }}</div>
+                </div>
+            </td>
+            <td style="width:45%;" class="logo-cell">
+                @if(file_exists($logoPath))
+                    <img src="{{ $logoPath }}">
+                @endif
+                <div class="company-name">{{ $facture->agence?->name_agence ?? 'TOPINFO' }}</div>
+                <div class="company-sub">SOLUTIONS INFORMATIQUES</div>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ── OBJET ── --}}
+    <div class="objet">
+        <span class="objet-label">OBJET</span> :&nbsp;
+        <span class="objet-text">{{ $facture->objet ?: ($facture->type_facture?->value === 'proforma' ? 'Facture Proforma' : ucfirst($facture->type_facture?->value ?? '')) }}</span>
     </div>
 
-    <div class="infos">
-        <div>
-            <h3>Client</h3>
-            <p><strong>{{ $facture->raison_social ?? $facture->contact?->raison_social ?? '—' }}</strong></p>
-            @if($facture->contact)
-                <p>{{ $facture->contact->adresse }}</p>
-                <p>{{ $facture->contact->telephone }}</p>
-                <p>{{ $facture->contact->adresse_email }}</p>
-            @endif
-        </div>
-        <div style="text-align:right;">
-            <h3>Références</h3>
-            <p><strong>Date :</strong> {{ $facture->date_facture ? \Carbon\Carbon::parse($facture->date_facture)->format('d/m/Y') : '—' }}</p>
-            <p><strong>Type :</strong> {{ $facture->type_facture?->value ?? '—' }}</p>
-            <p><strong>Statut :</strong>
-                @php
-                    $sv = $facture->statut_facture?->value ?? 'brouillon';
-                    $cls = match($sv) { 'payee'=>'badge-payee', 'impayee'=>'badge-impayee', 'partielle'=>'badge-partielle', 'annulee'=>'badge-annulee', default=>'badge-brouillon' };
-                @endphp
-                <span class="statut {{ $cls }}">{{ $sv }}</span>
-            </p>
-        </div>
-    </div>
+    {{-- ── DOIT ── --}}
+    <div class="doit">Doit : &nbsp; {{ $clientNom }}</div>
 
-    <table>
+    {{-- ── Tableau ── --}}
+    <table class="items-table">
         <thead>
             <tr>
-                <th style="width:50%;">Description</th>
-                <th>Quantité</th>
-                <th>Prix unit.</th>
-                <th>Total</th>
+                <th style="width:36%;text-align:left;">Désignation</th>
+                <th style="width:10%;">Quantité</th>
+                <th style="width:12%;">Coût unit.</th>
+                <th style="width:9%;">Remise %</th>
+                <th style="width:12%;">Prix unit.</th>
+                <th style="width:21%;">Montant total</th>
             </tr>
         </thead>
         <tbody>
@@ -81,24 +283,50 @@
                 <tr>
                     <td>{{ $item->description }}</td>
                     <td>{{ $item->quantite }}</td>
-                    <td>{{ number_format($item->prix_unitaire, 0, ',', ' ') }} FCFA</td>
-                    <td style="font-weight:600;">{{ number_format($item->quantite * $item->prix_unitaire, 0, ',', ' ') }} FCFA</td>
+                    <td style="text-align:right;">{{ $fmt($item->prix_unitaire) }}</td>
+                    <td></td>
+                    <td style="text-align:right;">{{ $fmt($item->prix_unitaire) }}</td>
+                    <td style="text-align:right;font-weight:bold;">{{ $fmt($item->sous_total) }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="4" style="text-align:center;color:#94a3b8;">Aucun article</td>
+                    <td colspan="6" style="text-align:center;color:#888;padding:16px;">Aucun article</td>
                 </tr>
             @endforelse
+
+            {{-- NET A PAYER --}}
+            <tr class="row-net">
+                <td colspan="5" style="text-align:right;">NET A PAYER</td>
+                <td style="text-align:right;">{{ $fmt($net) }}</td>
+            </tr>
+
+            {{-- TVA --}}
+            <tr class="row-tva">
+                <td colspan="5" style="text-align:right;">TVA 10%</td>
+                <td style="text-align:right;">{{ $fmt($tva) }}</td>
+            </tr>
+
+            {{-- TOTAL TTC --}}
+            <tr class="row-ttc">
+                <td colspan="5" style="text-align:right;">TOTAL TTC</td>
+                <td style="text-align:right;">{{ $fmt($ttc) }}</td>
+            </tr>
         </tbody>
     </table>
 
-    <div class="total">
-        Total : {{ number_format($total, 0, ',', ' ') }} FCFA
+    {{-- ── Montant en lettres ── --}}
+    <div class="amount-words">
+        Arrêté la présente facture {{ strtolower($typeLabel ?: 'facture') }} à la somme
+        de <strong>{{ $fmt($ttc) }}</strong> francs CFA.
     </div>
 
-    <div class="footer">
-        <p>Merci de votre confiance</p>
-        <p>Document généré le {{ date('d/m/Y à H:i') }}</p>
+    {{-- ── Signature ── --}}
+    <div class="signature-area">
+        <div class="signature-title">La Direction</div>
+        <div class="signature-line"></div><br>
+        <div class="signature-sub">Directeur Général</div>
     </div>
+
+</div>
 </body>
 </html>
