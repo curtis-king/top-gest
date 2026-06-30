@@ -24,8 +24,8 @@
 
         .dashboard-sidebar {
             width:270px;
-            background:rgba(255,255,255,.02);
-            border-right:1px solid rgba(255,255,255,.06);
+            background:linear-gradient(180deg,#0f172a 0%,#1a2444 50%,#0f172a 100%);
+            border-right:1px solid rgba(99,102,241,.15);
             padding:20px 14px;
             display:flex;
             flex-direction:column;
@@ -41,33 +41,35 @@
             align-items:center;
             gap:12px;
             padding-bottom:20px;
-            border-bottom:1px solid rgba(255,255,255,.06);
+            border-bottom:1px solid rgba(99,102,241,.15);
             margin-bottom:20px;
         }
 
         .sidebar-logo {
-            width:36px;
-            height:36px;
-            border-radius:10px;
-            background:linear-gradient(135deg,#2563eb,#3b82f6);
+            width:38px;
+            height:38px;
+            border-radius:12px;
+            background:linear-gradient(135deg,#6366f1,#06b6d4);
             display:flex;
             align-items:center;
             justify-content:center;
-            font-weight:700;
-            font-size:15px;
+            font-weight:800;
+            font-size:16px;
             color:#fff;
             flex-shrink:0;
+            box-shadow:0 4px 12px rgba(99,102,241,.3);
         }
 
         .sidebar-title {
-            font-size:15px;
-            font-weight:600;
+            font-size:16px;
+            font-weight:700;
             color:#f1f5f9;
+            letter-spacing:-.2px;
         }
 
         .sidebar-subtitle {
             font-size:11px;
-            color:rgba(255,255,255,.35);
+            color:rgba(148,163,184,.5);
             margin-top:1px;
         }
 
@@ -83,21 +85,30 @@
             display:flex;
             align-items:center;
             justify-content:space-between;
-            padding:10px 12px 6px;
+            padding:12px 12px 6px;
             cursor:pointer;
             user-select:none;
             transition:color .2s;
         }
-        .nav-group-header span {
+        .nav-group-header:hover .group-label { color:rgba(255,255,255,.5); }
+        .group-label {
+            display:flex;
+            align-items:center;
+            gap:8px;
             font-size:11px;
             text-transform:uppercase;
             letter-spacing:.6px;
-            color:rgba(255,255,255,.25);
-            font-weight:600;
+            color:rgba(148,163,184,.4);
+            font-weight:700;
+            transition:color .2s;
+        }
+        .group-label .ico {
+            font-size:14px;
+            opacity:.6;
         }
         .nav-group-header .arrow {
             font-size:10px;
-            color:rgba(255,255,255,.2);
+            color:rgba(148,163,184,.3);
             transition:transform .25s ease;
         }
         .nav-group-header .arrow.open {
@@ -106,70 +117,92 @@
         .nav-group-body {
             display:flex;
             flex-direction:column;
-            gap:1px;
+            gap:2px;
+            padding-left:4px;
             overflow:hidden;
             max-height:0;
             transition:max-height .3s ease;
         }
         .nav-group-body.open {
-            max-height:400px;
+            max-height:500px;
         }
 
         .sidebar-link {
             display:flex;
             align-items:center;
             gap:10px;
-            padding:9px 12px;
-            border-radius:8px;
+            padding:10px 12px;
+            border-radius:10px;
             font-size:13px;
             font-weight:500;
-            color:rgba(255,255,255,.5);
+            color:rgba(255,255,255,.45);
             text-decoration:none;
-            transition:all .2s ease;
+            transition:all .25s ease;
+            position:relative;
         }
 
         .sidebar-link svg {
-            width:16px;
-            height:16px;
+            width:17px;
+            height:17px;
             flex-shrink:0;
-            opacity:.6;
-            transition:opacity .2s;
+            opacity:.5;
+            transition:all .25s ease;
         }
 
         .sidebar-link:hover {
-            background:rgba(255,255,255,.04);
-            color:rgba(255,255,255,.8);
+            background:rgba(255,255,255,.05);
+            color:rgba(255,255,255,.85);
+            transform:translateX(3px);
         }
-        .sidebar-link:hover svg { opacity:.9; }
+        .sidebar-link:hover svg {
+            opacity:.9;
+            transform:scale(1.1);
+        }
 
         .sidebar-link.active {
-            background:rgba(59,130,246,.1);
-            color:#60a5fa;
+            background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(6,182,212,.08));
+            color:#818cf8;
+            border-left:3px solid #6366f1;
+            border-radius:10px 6px 6px 10px;
         }
-        .sidebar-link.active svg { opacity:1; }
+        .sidebar-link.active svg {
+            opacity:1;
+            color:#818cf8;
+        }
 
         .sidebar-summary {
             padding-top:14px;
-            border-top:1px solid rgba(255,255,255,.06);
+            border-top:1px solid rgba(99,102,241,.12);
             margin-top:auto;
         }
 
         .summary-title {
             font-size:11px;
-            color:rgba(255,255,255,.3);
+            color:rgba(148,163,184,.4);
             margin-bottom:6px;
             text-transform:uppercase;
             letter-spacing:.5px;
+            font-weight:600;
         }
 
         .summary-chip {
-            display:inline-block;
-            padding:4px 12px;
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            padding:5px 14px;
             border-radius:20px;
             font-size:12px;
-            font-weight:500;
-            background:rgba(59,130,246,.1);
-            color:#60a5fa;
+            font-weight:600;
+            background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(6,182,212,.08));
+            color:#818cf8;
+        }
+        .summary-chip::before {
+            content:'';
+            width:7px;
+            height:7px;
+            border-radius:50%;
+            background:#4ade80;
+            box-shadow:0 0 8px rgba(74,222,128,.5);
         }
 
         .dashboard-content {
@@ -263,7 +296,7 @@
 
                 <div class="nav-group">
                     <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span>Administration</span>
+                        <span class="group-label"><span class="ico">⚙️</span> Administration</span>
                         <span class="arrow">&#9654;</span>
                     </div>
                     <div class="nav-group-body">
@@ -284,7 +317,7 @@
 
                 <div class="nav-group">
                     <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span>Employés</span>
+                        <span class="group-label"><span class="ico">👥</span> Employés</span>
                         <span class="arrow">&#9654;</span>
                     </div>
                     <div class="nav-group-body">
@@ -305,7 +338,7 @@
 
                 <div class="nav-group">
                     <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span>Projets</span>
+                        <span class="group-label"><span class="ico">??</span> Projets</span>
                         <span class="arrow">&#9654;</span>
                     </div>
                     <div class="nav-group-body">
@@ -318,7 +351,7 @@
 
                 <div class="nav-group">
                     <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span>Contacts</span>
+                        <span class="group-label"><span class="ico">??</span> Contacts</span>
                         <span class="arrow">&#9654;</span>
                     </div>
                     <div class="nav-group-body">
@@ -331,7 +364,7 @@
 
                 <div class="nav-group">
                     <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span>Finance</span>
+                        <span class="group-label"><span class="ico">??</span> Finance</span>
                         <span class="arrow">&#9654;</span>
                     </div>
                     <div class="nav-group-body">
@@ -352,7 +385,7 @@
 
                 <div class="nav-group">
                     <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span>Banque</span>
+                        <span class="group-label"><span class="ico">??</span> Banque</span>
                         <span class="arrow">&#9654;</span>
                     </div>
                     <div class="nav-group-body">
@@ -369,7 +402,7 @@
 
                 <div class="nav-group">
                     <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span>Facturation</span>
+                        <span class="group-label"><span class="ico">??</span> Facturation</span>
                         <span class="arrow">&#9654;</span>
                     </div>
                     <div class="nav-group-body">
@@ -382,7 +415,7 @@
 
                 <div class="nav-group">
                     <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span>Stock</span>
+                        <span class="group-label"><span class="ico">??</span> Stock</span>
                         <span class="arrow">&#9654;</span>
                     </div>
                     <div class="nav-group-body">
@@ -411,7 +444,7 @@
 
                 <div class="nav-group">
                     <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span>Archives</span>
+                        <span class="group-label"><span class="ico">???</span> Archives</span>
                         <span class="arrow">&#9654;</span>
                     </div>
                     <div class="nav-group-body">
@@ -428,7 +461,7 @@
 
                 <div class="nav-group">
                     <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span>Système</span>
+                        <span class="group-label"><span class="ico">??</span> Système</span>
                         <span class="arrow">&#9654;</span>
                     </div>
                     <div class="nav-group-body">
@@ -466,6 +499,8 @@
             </section>
         </main>
     </div>
+
+    @stack('scripts')
 
     <script>
         function toggleGroup(header) {
