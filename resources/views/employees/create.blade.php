@@ -103,19 +103,6 @@
                 @enderror
             </div>
 
-            <div style="margin-bottom:18px;">
-                <label for="user_id" style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px;">Utilisateur</label>
-                <select id="user_id" name="user_id" style="width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:14px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.12)'" onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'">
-                    <option value="" style="color:#000;">-- Aucun utilisateur --</option>
-                    @foreach($users as $id => $name)
-                        <option value="{{ $id }}" style="color:#000;" {{ old('user_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
-                    @endforeach
-                </select>
-                @error('user_id')
-                    <span style="font-size:12px;color:#f87171;margin-top:5px;display:block;">{{ $message }}</span>
-                @enderror
-            </div>
-
             <div>
                 <button type="submit" style="padding:11px 28px;background:#2563eb;border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;">Créer</button>
             </div>

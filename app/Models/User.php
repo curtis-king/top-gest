@@ -2,88 +2,69 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'role'])]
+#[Fillable(['name', 'email', 'password', 'role', 'scope', 'agence_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
+
+    public const SCOPES = ['dg', 'chef-agence', 'agent', 'employe'];
 
     protected static function booted(): void
     {
         static::creating(function (User $user) {
-            if (!$user->role) {
-                $user->role = 'user';
+            if (!$user->scope) {
+                $user->scope = 'agent';
             }
         });
     }
 
-    /**
-     * Available roles in the application.
-     *
-     * @var string[]
-     */
-    public const ROLES = [
-        'user',
-        'admin',
-    ];
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
         ];
     }
 
-    /**
-     * Check if the user has the given role or one of the given roles.
-     *
-     * @param string|string[] $role
-     * @return bool
-     */
-    public function hasRole(string|array $role): bool
-    {
-        if (is_array($role)) {
-            return in_array($this->role, $role, true);
-        }
-
-        return $this->role === $role;
-    }
-
-    /**
-     * Shortcut to check admin role.
-     */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->scope === 'dg';
     }
 
-    /**
-     * Assign a role to the user and persist.
-     *
-     * @throws \InvalidArgumentException
-     */
-    public function assignRole(string $role): void
+    public function isScopeDG(): bool
     {
-        if (!in_array($role, self::ROLES, true)) {
-            throw new \InvalidArgumentException("Invalid role: {$role}");
-        }
+        return $this->scope === 'dg';
+    }
 
-        $this->role = $role;
-        $this->save();
+    public function isScopeChefAgence(): bool
+    {
+        return $this->scope === 'chef-agence';
+    }
+
+    public function agence(): BelongsTo
+    {
+        return $this->belongsTo(Agence::class);
+    }
+
+    public function employee(): HasOne
+    {
+        return $this->hasOne(Employee::class);
+    }
+
+    public function agenceId(): ?int
+    {
+        return $this->agence_id;
     }
 }

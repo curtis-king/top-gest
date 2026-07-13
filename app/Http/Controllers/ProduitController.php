@@ -109,7 +109,12 @@ class ProduitController extends Controller
 
     public function destroy(Produit $produit): RedirectResponse
     {
-        $produit->delete();
+        try {
+            $produit->delete();
+        } catch (\Illuminate\Database\QueryException) {
+            return redirect()->route('produits.index')
+                ->with('error', 'Impossible de supprimer ce produit : il possède un historique de mouvements de stock.');
+        }
 
         return redirect()->route('produits.index')
             ->with('success', 'Produit supprimé.');

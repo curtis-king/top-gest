@@ -7,7 +7,11 @@
 <div style="margin-bottom:20px;">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
         <h2 style="font-size:18px;font-weight:600;color:#f1f5f9;">Stock par dépôt</h2>
-        <a href="{{ route('mouvements-stocks.create') }}" class="btn-primary" style="text-decoration:none;">+ Saisir un mouvement</a>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a href="{{ route('stocks.dashboard') }}" class="btn-outline" style="text-decoration:none;">Tableau de bord</a>
+            <a href="{{ route('stocks.pdf.etat') }}{{ request()->getQueryString() ? '?'.request()->getQueryString() : '' }}" target="_blank" class="btn-outline" style="text-decoration:none;">↓ PDF état</a>
+            <a href="{{ route('mouvements-stocks.create') }}" class="btn-primary" style="text-decoration:none;">+ Saisir un mouvement</a>
+        </div>
     </div>
 
     <form method="GET" action="{{ route('stocks.index') }}" style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">

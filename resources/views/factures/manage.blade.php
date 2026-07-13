@@ -93,6 +93,19 @@
                 <span style="font-size:26px;font-weight:700;color:#4ade80;">{{ number_format($total, 0, ',', ' ') }} FCFA</span>
             </div>
         </div>
+
+        @php
+            $ecritureLiee = \App\Models\EcritureComptable::where('source_type', 'facture')->where('source_id', $facture->id)->first();
+        @endphp
+        @if(in_array($sv, ['payee', 'partielle']) && in_array($tv, ['vente', 'achat']))
+            <div style="padding-top:12px;margin-top:12px;border-top:1px solid rgba(255,255,255,.04);">
+                @if($ecritureLiee)
+                    <a href="{{ route('ecritures-comptables.show', $ecritureLiee) }}" style="color:#60a5fa;text-decoration:none;font-size:13px;font-weight:500;">Voir l'écriture {{ $ecritureLiee->numero_ecriture }} &rarr;</a>
+                @else
+                    <a href="{{ route('ecritures-comptables.create', ['source_type' => 'facture', 'source_id' => $facture->id]) }}" class="mg-btn" style="background:#2563eb;color:#fff;text-decoration:none;display:inline-block;">Comptabiliser cette facture</a>
+                @endif
+            </div>
+        @endif
     </div>
 
     {{-- ITEMS --}}

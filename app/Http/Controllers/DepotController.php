@@ -71,7 +71,12 @@ class DepotController extends Controller
 
     public function destroy(Depot $depot): RedirectResponse
     {
-        $depot->delete();
+        try {
+            $depot->delete();
+        } catch (\Illuminate\Database\QueryException) {
+            return redirect()->route('depots.index')
+                ->with('error', 'Impossible de supprimer ce dépôt : il possède un historique de mouvements de stock.');
+        }
 
         return redirect()->route('depots.index')
             ->with('success', 'Dépôt supprimé.');

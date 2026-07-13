@@ -269,16 +269,82 @@
 
         .dashboard-grid { display:flex; flex-direction:column; }
 
+        /* ── Hamburger (caché sur desktop) ───────────────────────── */
+        .sidebar-toggle {
+            display:none;
+            align-items:center;
+            justify-content:center;
+            width:38px;
+            height:38px;
+            background:rgba(255,255,255,.05);
+            border:1px solid rgba(255,255,255,.08);
+            border-radius:10px;
+            cursor:pointer;
+            color:rgba(255,255,255,.65);
+            flex-shrink:0;
+            transition:all .2s;
+        }
+        .sidebar-toggle:hover { background:rgba(255,255,255,.1); color:#fff; }
+
+        /* ── Backdrop (caché par défaut) ──────────────────────────── */
+        .sidebar-backdrop {
+            display:none;
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,.55);
+            backdrop-filter:blur(2px);
+            z-index:99;
+        }
+        .sidebar-backdrop.open { display:block; }
+
+        /* ── Mobile ≤ 768px ───────────────────────────────────────── */
         @media (max-width:768px) {
-            .dashboard-sidebar { display:none; }
-            .dashboard-content { padding:24px 20px; }
-            .dashboard-topbar { flex-direction:column; }
+            body.sidebar-open { overflow:hidden; }
+
+            .dashboard-sidebar {
+                position:fixed;
+                top:0; left:0;
+                height:100dvh;
+                z-index:100;
+                transform:translateX(-100%);
+                transition:transform .3s cubic-bezier(.4,0,.2,1);
+                box-shadow:none;
+            }
+            .dashboard-sidebar.open {
+                transform:translateX(0);
+                box-shadow:12px 0 40px rgba(0,0,0,.5);
+            }
+
+            .sidebar-toggle { display:flex; }
+
+            .dashboard-content { padding:16px; }
+
+            .dashboard-topbar {
+                flex-wrap:nowrap;
+                align-items:center;
+                gap:12px;
+                margin-bottom:20px;
+            }
+            .dashboard-topbar h1 { font-size:18px; }
+            .eyebrow { display:none; }
+
+            .topbar-actions .btn-primary {
+                padding:8px 14px;
+                font-size:12px;
+            }
+        }
+
+        /* ── Tablette 769-1024px ──────────────────────────────────── */
+        @media (min-width:769px) and (max-width:1024px) {
+            .dashboard-sidebar { width:220px; }
+            .dashboard-content { padding:24px 28px; }
         }
     </style>
 </head>
 <body>
     <div class="dashboard-shell">
-        <aside class="dashboard-sidebar">
+        <div id="sidebarBackdrop" class="sidebar-backdrop" onclick="toggleSidebar()"></div>
+        <aside class="dashboard-sidebar" id="dashboardSidebar">
             <div class="sidebar-brand">
                 <div class="sidebar-logo">MG</div>
                 <div>
@@ -287,190 +353,76 @@
                 </div>
             </div>
 
+@php
+$_cr = Route::currentRouteName() ?? '';
+$_domainMap = [
+    'employees'=>'rh','dossiers-employees'=>'rh','conges'=>'rh','retenus'=>'rh',
+    'primes'=>'rh','payements-employees'=>'rh','compagnies'=>'rh','agences'=>'rh','fonctions'=>'rh',
+    'projects'=>'projets','taches-projects'=>'projets','affectation-taches'=>'projets',
+    'factures'=>'finance','contacts'=>'finance','banques'=>'finance','livrets-bancaires'=>'finance',
+    'stocks'=>'stock','produits'=>'stock','mouvements-stocks'=>'stock','depots'=>'stock','categories-produits'=>'stock',
+    'documents'=>'archives','categories-documents'=>'archives',
+    'users'=>'systeme',
+];
+$_activeDomain = 'dashboard';
+foreach ($_domainMap as $_prefix => $_domain) {
+    if (str_starts_with($_cr, $_prefix)) { $_activeDomain = $_domain; break; }
+}
+@endphp
             <nav class="sidebar-nav" id="sidebarNav">
 
-                <a href="{{ url('/dashboard') }}" class="sidebar-link active">
+                <a href="{{ url('/dashboard') }}"
+                   class="sidebar-link {{ $_activeDomain === 'dashboard' ? 'active' : '' }}"
+                   data-permission="administration.view">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
                     Tableau de bord
                 </a>
 
-                <div class="nav-group">
-                    <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span class="group-label"><span class="ico">⚙️</span> Administration</span>
-                        <span class="arrow">&#9654;</span>
-                    </div>
-                    <div class="nav-group-body">
-                        <a href="{{ route('compagnies.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                            Compagnies
-                        </a>
-                        <a href="{{ route('agences.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/><path d="M9 21V12h6v9"/></svg>
-                            Agences
-                        </a>
-                        <a href="{{ route('fonctions.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                            Fonctions
-                        </a>
-                    </div>
-                </div>
+                <div style="height:1px;background:rgba(255,255,255,.05);margin:8px 0;"></div>
 
-                <div class="nav-group">
-                    <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span class="group-label"><span class="ico">👥</span> Employés</span>
-                        <span class="arrow">&#9654;</span>
-                    </div>
-                    <div class="nav-group-body">
-                        <a href="{{ route('employees.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                            Employés
-                        </a>
-                        <a href="{{ route('dossiers-employees.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
-                            Dossiers
-                        </a>
-                        <a href="{{ route('conges.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/><path d="M10 14h4"/><path d="M12 12v4"/></svg>
-                            Congés
-                        </a>
-                    </div>
-                </div>
+                <a href="{{ route('employees.index') }}"
+                   class="sidebar-link {{ $_activeDomain === 'rh' ? 'active' : '' }}"
+                   data-permission="rh.view">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Ressources Humaines
+                </a>
 
-                <div class="nav-group">
-                    <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span class="group-label"><span class="ico">??</span> Projets</span>
-                        <span class="arrow">&#9654;</span>
-                    </div>
-                    <div class="nav-group-body">
-                        <a href="{{ route('projects.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                            Projets
-                        </a>
-                    </div>
-                </div>
+                <a href="{{ route('projects.index') }}"
+                   class="sidebar-link {{ $_activeDomain === 'projets' ? 'active' : '' }}"
+                   data-permission="projets.view">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                    Projets
+                </a>
 
-                <div class="nav-group">
-                    <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span class="group-label"><span class="ico">??</span> Contacts</span>
-                        <span class="arrow">&#9654;</span>
-                    </div>
-                    <div class="nav-group-body">
-                        <a href="{{ route('contacts.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                            Contacts
-                        </a>
-                    </div>
-                </div>
+                <a href="{{ route('factures.index') }}"
+                   class="sidebar-link {{ $_activeDomain === 'finance' ? 'active' : '' }}"
+                   data-permission="finance.view">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    Finance
+                </a>
 
-                <div class="nav-group">
-                    <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span class="group-label"><span class="ico">??</span> Finance</span>
-                        <span class="arrow">&#9654;</span>
-                    </div>
-                    <div class="nav-group-body">
-                        <a href="{{ route('retenus.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                            Retenus
-                        </a>
-                        <a href="{{ route('primes.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                            Primes
-                        </a>
-                        <a href="{{ route('payements-employees.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/><path d="M7 15h.01"/><path d="M11 15h2"/></svg>
-                            Paiements
-                        </a>
-                    </div>
-                </div>
+                <a href="{{ route('stocks.dashboard') }}"
+                   class="sidebar-link {{ $_activeDomain === 'stock' ? 'active' : '' }}"
+                   data-permission="stock.view">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                    Stock
+                </a>
 
-                <div class="nav-group">
-                    <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span class="group-label"><span class="ico">??</span> Banque</span>
-                        <span class="arrow">&#9654;</span>
-                    </div>
-                    <div class="nav-group-body">
-                        <a href="{{ route('banques.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="2" width="18" height="4" rx="1"/><path d="M4 6v14"/><path d="M20 6v14"/><path d="M8 10h8"/><path d="M8 14h8"/><path d="M8 18h4"/></svg>
-                            Banques
-                        </a>
-                        <a href="{{ route('livrets-bancaires.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M16 2v4M4 8h16"/><rect x="2" y="6" width="20" height="16" rx="1"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></svg>
-                            Livret bancaire
-                        </a>
-                    </div>
-                </div>
+                <a href="{{ route('documents.index') }}"
+                   class="sidebar-link {{ $_activeDomain === 'archives' ? 'active' : '' }}"
+                   data-permission="archives.view">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                    Archives
+                </a>
 
-                <div class="nav-group">
-                    <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span class="group-label"><span class="ico">??</span> Facturation</span>
-                        <span class="arrow">&#9654;</span>
-                    </div>
-                    <div class="nav-group-body">
-                        <a href="{{ route('factures.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                            Factures
-                        </a>
-                    </div>
-                </div>
+                <div style="height:1px;background:rgba(255,255,255,.05);margin:8px 0;"></div>
 
-                <div class="nav-group">
-                    <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span class="group-label"><span class="ico">??</span> Stock</span>
-                        <span class="arrow">&#9654;</span>
-                    </div>
-                    <div class="nav-group-body">
-                        <a href="{{ route('produits.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-                            Produits
-                        </a>
-                        <a href="{{ route('stocks.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-                            État des stocks
-                        </a>
-                        <a href="{{ route('mouvements-stocks.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-                            Mouvements
-                        </a>
-                        <a href="{{ route('depots.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/><path d="M9 21V12h6v9"/></svg>
-                            Dépôts
-                        </a>
-                        <a href="{{ route('categories-produits.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M4 4h16M9 4v16M15 4v16"/></svg>
-                            Catégories
-                        </a>
-                    </div>
-                </div>
-
-                <div class="nav-group">
-                    <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span class="group-label"><span class="ico">???</span> Archives</span>
-                        <span class="arrow">&#9654;</span>
-                    </div>
-                    <div class="nav-group-body">
-                        <a href="{{ route('documents.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                            Documents
-                        </a>
-                        <a href="{{ route('categories-documents.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M4 4h16M9 4v16M15 4v16"/></svg>
-                            Catégories
-                        </a>
-                    </div>
-                </div>
-
-                <div class="nav-group">
-                    <div class="nav-group-header" onclick="toggleGroup(this)">
-                        <span class="group-label"><span class="ico">??</span> Système</span>
-                        <span class="arrow">&#9654;</span>
-                    </div>
-                    <div class="nav-group-body">
-                        <a href="{{ route('users.index') }}" class="sidebar-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.52 19c.64-2.2 1.84-3 3.22-4.5A6.5 6.5 0 0 1 12 13c1.46 0 2.84.56 3.93 1.5 1.38 1.5 2.58 2.3 3.22 4.5"/><circle cx="12" cy="8" r="4"/><circle cx="20" cy="8" r="2.5"/><path d="M22 13c-.33-.63-.9-1.1-1.6-1.34"/></svg>
-                            Utilisateurs
-                        </a>
-                    </div>
-                </div>
+                <a href="{{ route('users.index') }}"
+                   class="sidebar-link {{ $_activeDomain === 'systeme' ? 'active' : '' }}"
+                   data-permission="administration.view">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5.52 19c.64-2.2 1.84-3 3.22-4.5A6.5 6.5 0 0 1 12 13c1.46 0 2.84.56 3.93 1.5 1.38 1.5 2.58 2.3 3.22 4.5"/></svg>
+                    Système
+                </a>
 
             </nav>
 
@@ -482,11 +434,20 @@
 
         <main class="dashboard-content">
             <header class="dashboard-topbar">
-                <div>
-                    <span class="eyebrow">Bienvenue sur MyGest</span>
-                    <h1>@yield('page-title', 'Tableau de bord')</h1>
+                <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Menu">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <line x1="3" y1="12" x2="21" y2="12"/>
+                            <line x1="3" y1="18" x2="21" y2="18"/>
+                        </svg>
+                    </button>
+                    <div style="min-width:0;">
+                        <span class="eyebrow">Bienvenue sur MyGest</span>
+                        <h1 style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@yield('page-title', 'Tableau de bord')</h1>
+                    </div>
                 </div>
-                <div class="topbar-actions">
+                <div class="topbar-actions" style="flex-shrink:0;">
                     <form method="POST" action="{{ route('logout') }}" style="display:inline;">
                         @csrf
                         <button type="submit" class="btn-primary">Se déconnecter</button>
@@ -494,30 +455,106 @@
                 </div>
             </header>
 
+            @include('partials.domain-tabs')
+
             <section class="dashboard-grid">
                 @yield('content')
             </section>
         </main>
     </div>
 
+    {{-- Modal accès refusé --}}
+    <div id="accessDeniedModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+        <div style="background:linear-gradient(135deg,#0f172a,#1a2444);border:1px solid rgba(248,113,113,.25);border-radius:18px;padding:36px 40px;max-width:420px;width:90%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.5);animation:modalIn .2s ease;">
+            <div style="width:56px;height:56px;border-radius:50%;background:rgba(248,113,113,.12);border:1.5px solid rgba(248,113,113,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            </div>
+            <h3 style="font-size:18px;font-weight:700;color:#f1f5f9;margin:0 0 10px;">Accès refusé</h3>
+            <p style="font-size:13px;color:rgba(255,255,255,.5);margin:0 0 8px;" id="accessDeniedMessage">
+                Vous n'êtes pas autorisé à accéder à cette section.
+            </p>
+            <p style="font-size:12px;color:rgba(248,113,113,.6);margin:0 0 28px;" id="accessDeniedPermission"></p>
+            <div style="display:flex;gap:12px;justify-content:center;">
+                <button onclick="closeAccessModal()" style="padding:10px 24px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:rgba(255,255,255,.65);font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background='rgba(255,255,255,.06)'">
+                    Fermer
+                </button>
+                <a href="{{ url('/dashboard') }}" style="padding:10px 24px;background:#2563eb;border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;transition:all .2s;" onmouseover="this.style.background='#3b82f6'" onmouseout="this.style.background='#2563eb'">
+                    Tableau de bord
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes modalIn {
+            from { opacity:0; transform:scale(.94) translateY(8px); }
+            to   { opacity:1; transform:scale(1)  translateY(0); }
+        }
+    </style>
+
     @stack('scripts')
 
     <script>
-        function toggleGroup(header) {
-            const body = header.nextElementSibling;
-            const arrow = header.querySelector('.arrow');
-            const isOpen = body.classList.contains('open');
+        @auth
+        const userPermissions = @json(auth()->user()->getAllPermissions()->pluck('name'));
+        @endauth
 
-            body.classList.toggle('open');
-            arrow.classList.toggle('open');
-
-            if (!isOpen) {
-                const allBodies = document.querySelectorAll('.nav-group-body');
-                const allArrows = document.querySelectorAll('.nav-group .arrow');
-                allBodies.forEach(b => { if (b !== body) b.classList.remove('open'); });
-                allArrows.forEach(a => { if (a !== arrow) a.classList.remove('open'); });
-            }
+        function showAccessModal(permission, label) {
+            const msg = document.getElementById('accessDeniedMessage');
+            const perm = document.getElementById('accessDeniedPermission');
+            msg.textContent = 'Vous n\'êtes pas autorisé à accéder à cette section.';
+            perm.textContent = label ? 'Section : ' + label : '';
+            const modal = document.getElementById('accessDeniedModal');
+            modal.style.display = 'flex';
+            document.addEventListener('keydown', escHandler);
         }
+
+        function closeAccessModal() {
+            document.getElementById('accessDeniedModal').style.display = 'none';
+            document.removeEventListener('keydown', escHandler);
+        }
+
+        function escHandler(e) {
+            if (e.key === 'Escape') closeAccessModal();
+        }
+
+        document.getElementById('accessDeniedModal').addEventListener('click', function(e) {
+            if (e.target === this) closeAccessModal();
+        });
+
+        document.querySelectorAll('.sidebar-link[data-permission]').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                const required = this.getAttribute('data-permission');
+                if (typeof userPermissions !== 'undefined' && !userPermissions.includes(required)) {
+                    e.preventDefault();
+                    const label = this.textContent.trim();
+                    showAccessModal(required, label);
+                }
+            });
+        });
+
+        // ── Mobile sidebar drawer ───────────────────────────────────
+        function toggleSidebar() {
+            const sidebar  = document.getElementById('dashboardSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            const isOpen   = sidebar.classList.toggle('open');
+            backdrop.classList.toggle('open', isOpen);
+            document.body.classList.toggle('sidebar-open', isOpen);
+        }
+
+        // Ferme la sidebar au clic sur un lien (mobile)
+        document.querySelectorAll('.sidebar-link').forEach(function(link) {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    const sidebar  = document.getElementById('dashboardSidebar');
+                    const backdrop = document.getElementById('sidebarBackdrop');
+                    sidebar.classList.remove('open');
+                    backdrop.classList.remove('open');
+                    document.body.classList.remove('sidebar-open');
+                }
+            });
+        });
+
     </script>
 </body>
 </html>

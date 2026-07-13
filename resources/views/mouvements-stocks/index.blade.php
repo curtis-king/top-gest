@@ -7,7 +7,11 @@
 <div style="margin-bottom:20px;">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
         <h2 style="font-size:18px;font-weight:600;color:#f1f5f9;">Historique des mouvements</h2>
-        <a href="{{ route('mouvements-stocks.create') }}" class="btn-primary" style="text-decoration:none;">+ Nouveau mouvement</a>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a href="{{ route('stocks.dashboard') }}" class="btn-outline" style="text-decoration:none;">Tableau de bord</a>
+            <a href="{{ route('mouvements-stocks.pdf.rapport') }}{{ request()->getQueryString() ? '?'.request()->getQueryString() : '' }}" target="_blank" class="btn-outline" style="text-decoration:none;">↓ PDF rapport</a>
+            <a href="{{ route('mouvements-stocks.create') }}" class="btn-primary" style="text-decoration:none;">+ Nouveau mouvement</a>
+        </div>
     </div>
 
     @if(session('success'))
@@ -52,6 +56,7 @@
                     <th style="padding:12px 16px;text-align:right;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;">Qté</th>
                     <th style="padding:12px 16px;text-align:right;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;">Date</th>
                     <th style="padding:12px 16px;text-align:right;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;">Par</th>
+                    <th style="padding:12px 16px;"></th>
                 </tr>
             </thead>
             <tbody>
@@ -79,6 +84,9 @@
                         </td>
                         <td style="padding:12px 16px;text-align:right;font-size:12px;color:rgba(255,255,255,.4);">{{ $mv->date_mouvement?->format('d/m/Y') }}</td>
                         <td style="padding:12px 16px;text-align:right;font-size:12px;color:rgba(255,255,255,.4);">{{ $mv->user?->name ?? '—' }}</td>
+                        <td style="padding:12px 16px;text-align:right;">
+                            <a href="{{ route('mouvements-stocks.pdf', $mv) }}" target="_blank" style="font-size:11px;color:#60a5fa;text-decoration:none;padding:3px 8px;border:1px solid rgba(96,165,250,.3);border-radius:6px;transition:all .15s;" onmouseover="this.style.background='rgba(96,165,250,.1)'" onmouseout="this.style.background='transparent'">PDF</a>
+                        </td>
                     </tr>
                 @empty
                     <tr>

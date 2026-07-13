@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Agence;
 use App\Models\Employee;
 use App\Models\Fonction;
-use App\Models\User;
 use App\Enums\StatusMatrimonial;
 use App\Enums\TypePiece;
 use App\Http\Controllers\Traits\Sortable;
@@ -49,12 +48,11 @@ class EmployeeController extends Controller
     {
         $agences = Agence::pluck('name_agence', 'id');
         $fonctions = Fonction::pluck('name', 'id');
-        $users = User::pluck('name', 'id');
         $statuses = StatusMatrimonial::cases();
         $typePieces = TypePiece::cases();
 
         return view('employees.create', compact(
-            'agences', 'fonctions', 'users', 'statuses', 'typePieces'
+            'agences', 'fonctions', 'statuses', 'typePieces'
         ));
     }
 
@@ -70,7 +68,6 @@ class EmployeeController extends Controller
             'status_matrimonial' => ['nullable', 'string'],
             'agence_id' => ['required', 'exists:agences,id'],
             'fonction_id' => ['required', 'exists:fonctions,id'],
-            'user_id' => ['nullable', 'exists:users,id'],
         ]);
 
         Employee::create($validated);
@@ -99,12 +96,11 @@ class EmployeeController extends Controller
     {
         $agences = Agence::pluck('name_agence', 'id');
         $fonctions = Fonction::pluck('name', 'id');
-        $users = User::pluck('name', 'id');
         $statuses = StatusMatrimonial::cases();
         $typePieces = TypePiece::cases();
 
         return view('employees.edit', compact(
-            'employee', 'agences', 'fonctions', 'users', 'statuses', 'typePieces'
+            'employee', 'agences', 'fonctions', 'statuses', 'typePieces'
         ));
     }
 
@@ -120,7 +116,6 @@ class EmployeeController extends Controller
             'status_matrimonial' => ['nullable', 'string'],
             'agence_id' => ['required', 'exists:agences,id'],
             'fonction_id' => ['required', 'exists:fonctions,id'],
-            'user_id' => ['nullable', 'exists:users,id'],
         ]);
 
         $employee->update($validated);

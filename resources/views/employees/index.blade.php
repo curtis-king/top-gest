@@ -23,25 +23,24 @@
             </div>
         @endif
 
-        <form method="GET" action="{{ route('employees.index') }}" style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+        <form id="empSearchForm" method="GET" action="{{ route('employees.index') }}" style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
             <div style="flex:1;min-width:200px;position:relative;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;position:absolute;left:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.3);pointer-events:none;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Rechercher par nom, téléphone ou email..." style="width:100%;padding:10px 14px 10px 40px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.12)'" onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'">
+                <input id="empSearch" type="text" name="search" value="{{ request('search') }}" placeholder="Rechercher par nom, téléphone ou email..." autocomplete="off" style="width:100%;padding:10px 14px 10px 40px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.12)'" onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'">
             </div>
-            <select name="sort" style="padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;cursor:pointer;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+            <select id="empSort" name="sort" style="padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;cursor:pointer;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
                 <option value="created_at" {{ request('sort', 'created_at') == 'created_at' ? 'selected' : '' }} style="color:#000;">Plus récents</option>
                 <option value="nom_complet" {{ request('sort') == 'nom_complet' ? 'selected' : '' }} style="color:#000;">Nom A-Z</option>
                 <option value="id" {{ request('sort') == 'id' ? 'selected' : '' }} style="color:#000;">ID</option>
                 <option value="agence_id" {{ request('sort') == 'agence_id' ? 'selected' : '' }} style="color:#000;">Agence</option>
                 <option value="fonction_id" {{ request('sort') == 'fonction_id' ? 'selected' : '' }} style="color:#000;">Fonction</option>
             </select>
-            <select name="direction" style="padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;cursor:pointer;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+            <select id="empDir" name="direction" style="padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;cursor:pointer;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
                 <option value="desc" {{ request('direction', 'desc') == 'desc' ? 'selected' : '' }} style="color:#000;">Descendant</option>
                 <option value="asc" {{ request('direction') == 'asc' ? 'selected' : '' }} style="color:#000;">Ascendant</option>
             </select>
-            <button type="submit" style="padding:10px 20px;background:#2563eb;border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .25s ease;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">Filtrer</button>
             @if(request()->anyFilled(['search', 'sort', 'direction']))
-                <a href="{{ route('employees.index') }}" style="padding:10px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:rgba(255,255,255,.5);text-decoration:none;font-size:13px;font-weight:500;display:inline-flex;align-items:center;transition:all .25s ease;" onmouseover="this.style.borderColor='rgba(248,113,113,.3)';this.style.color='#f87171'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)';this.style.color='rgba(255,255,255,.5)'">Réinitialiser</a>
+                <a href="{{ route('employees.index') }}" style="padding:10px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:rgba(255,255,255,.5);text-decoration:none;font-size:13px;font-weight:500;display:inline-flex;align-items:center;" onmouseover="this.style.borderColor='rgba(248,113,113,.3)';this.style.color='#f87171'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)';this.style.color='rgba(255,255,255,.5)'">&#x2715; Réinitialiser</a>
             @endif
         </form>
 
@@ -111,4 +110,24 @@
             {{ $employees->links() }}
         </div>
     </div>
+
+@push('scripts')
+<script>
+(function () {
+    const form   = document.getElementById('empSearchForm');
+    const input  = document.getElementById('empSearch');
+    const sort   = document.getElementById('empSort');
+    const dir    = document.getElementById('empDir');
+
+    let timer;
+    input.addEventListener('input', function () {
+        clearTimeout(timer);
+        timer = setTimeout(() => form.submit(), 350);
+    });
+
+    sort.addEventListener('change', () => form.submit());
+    dir.addEventListener('change',  () => form.submit());
+})();
+</script>
+@endpush
 @endsection

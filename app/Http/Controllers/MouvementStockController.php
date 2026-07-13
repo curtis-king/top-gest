@@ -59,7 +59,14 @@ class MouvementStockController extends Controller
     {
         $types = TypeMouvement::cases();
         $produits = Produit::orderBy('nom')->get(['id', 'nom', 'code']);
-        $depots = Depot::with('agence')->orderBy('nom')->get();
+        $depotsQuery = Depot::with('agence')->orderBy('nom');
+        if (!auth()->user()->isAdmin()) {
+            $userEmp = Employee::where('user_id', auth()->id())->first();
+            if ($userEmp && $userEmp->agence_id) {
+                $depotsQuery->where('agence_id', $userEmp->agence_id);
+            }
+        }
+        $depots = $depotsQuery->get();
 
         // Pre-fill autocomplete after validation failure
         $oldContactId = old('contact_id');
@@ -104,13 +111,47 @@ class MouvementStockController extends Controller
 
         $validated['user_id'] = auth()->id();
 
+        $type = TypeMouvement::from($validated['type_mouvement']);
+        $stockError = $this->verifierStockSuffisant($type, $validated);
+        if ($stockError) {
+            return back()->withErrors(['quantite' => $stockError])->withInput();
+        }
+
         DB::transaction(function () use ($validated) {
             MouvementStock::create($validated);
             $this->updateStock($validated);
         });
 
+        $produit = Produit::with('stocks')->find($validated['produit_id']);
+        if ($produit->en_alerte) {
+            return redirect()->route('mouvements-stocks.index')
+                ->with('success', 'Mouvement enregistré avec succès.')
+                ->with('warning', "Stock bas : \"{$produit->nom}\" a atteint le seuil minimum ({$produit->stock_min}).");
+        }
+
         return redirect()->route('mouvements-stocks.index')
             ->with('success', 'Mouvement enregistré avec succès.');
+    }
+
+    private function verifierStockSuffisant(TypeMouvement $type, array $data): ?string
+    {
+        $produitId = $data['produit_id'];
+        $depotId   = $data['depot_id'];
+        $quantite  = (int) $data['quantite'];
+
+        $stockActuel = Stock::where('produit_id', $produitId)
+            ->where('depot_id', $depotId)
+            ->value('quantite') ?? 0;
+
+        return match ($type) {
+            TypeMouvement::Sortie, TypeMouvement::Transfert => $quantite > $stockActuel
+                ? "Stock insuffisant dans ce dépôt : {$stockActuel} disponible(s), {$quantite} demandé(s)."
+                : null,
+            TypeMouvement::Ajustement => $quantite < 0 && ($stockActuel + $quantite) < 0
+                ? "Ajustement impossible : le résultat serait négatif ({$stockActuel} + {$quantite} = " . ($stockActuel + $quantite) . ")."
+                : null,
+            TypeMouvement::Entree => null,
+        };
     }
 
     private function updateStock(array $data): void

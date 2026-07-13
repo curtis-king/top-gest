@@ -87,6 +87,20 @@
 
 </div>
 
+@php
+    $ecritureLiee = \App\Models\EcritureComptable::where('source_type', 'payement_employee')->where('source_id', $payementEmployee->id)->first();
+@endphp
+@if($payementEmployee->status?->value === 'paye')
+<div style="margin-top:20px;padding:16px 20px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <span style="font-size:13px;color:rgba(255,255,255,.6);">Comptabilité</span>
+    @if($ecritureLiee)
+        <a href="{{ route('ecritures-comptables.show', $ecritureLiee) }}" style="color:#60a5fa;text-decoration:none;font-size:13px;font-weight:500;">Voir l'écriture {{ $ecritureLiee->numero_ecriture }} &rarr;</a>
+    @else
+        <a href="{{ route('ecritures-comptables.create', ['source_type' => 'payement_employee', 'source_id' => $payementEmployee->id]) }}" class="btn-primary" style="text-decoration:none;">Comptabiliser ce paiement</a>
+    @endif
+</div>
+@endif
+
 <div style="margin-top:20px;display:flex;gap:12px;">
     <button onclick="window.print()" class="btn-primary" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);text-decoration:none;display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,.7);">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>

@@ -73,6 +73,18 @@
 
 </div>
 
+@php
+    $ecritureLiee = \App\Models\EcritureComptable::where('source_type', 'livret_bancaire')->where('source_id', $livretBancaire->id)->first();
+@endphp
+<div style="margin-top:20px;padding:16px 20px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <span style="font-size:13px;color:rgba(255,255,255,.6);">Comptabilité</span>
+    @if($ecritureLiee)
+        <a href="{{ route('ecritures-comptables.show', $ecritureLiee) }}" style="color:#60a5fa;text-decoration:none;font-size:13px;font-weight:500;">Voir l'écriture {{ $ecritureLiee->numero_ecriture }} &rarr;</a>
+    @else
+        <a href="{{ route('ecritures-comptables.create', ['source_type' => 'livret_bancaire', 'source_id' => $livretBancaire->id]) }}" class="btn-primary" style="text-decoration:none;">Comptabiliser cette opération</a>
+    @endif
+</div>
+
 <div style="margin-top:20px;display:flex;gap:12px;">
     <a href="{{ route('livrets-bancaires.edit', $livretBancaire) }}" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">Modifier</a>
     <form method="POST" action="{{ route('livrets-bancaires.destroy', $livretBancaire) }}" style="display:inline;" onsubmit="return confirm('Confirmer la suppression ?');">

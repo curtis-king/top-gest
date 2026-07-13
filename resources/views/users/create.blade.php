@@ -1,52 +1,181 @@
 @extends('layouts.app')
 
-@section('title', 'Créer - Utilisateur - MyGest')
-
-@section('page-title', 'Créer un(e) Utilisateur')
+@section('title', 'Nouvel utilisateur - MyGest')
+@section('page-title', 'Nouvel utilisateur')
 
 @section('content')
+@php
+$scopeLabels = [
+    'dg'          => 'Directeur Général — toutes agences, tous domaines',
+    'chef-agence' => 'Chef d\'agence — son agence, tous domaines',
+    'agent'       => 'Agent — son agence, son domaine uniquement',
+    'employe'     => 'Employé — son propre dossier uniquement',
+];
+$roleGroups = [
+    'Système'             => ['admin-systeme', 'dg', 'chef-agence'],
+    'Ressources Humaines' => ['responsable-rh', 'assistant-rh'],
+    'Projets'             => ['responsable-projets', 'assistant-projets'],
+    'Finance'             => ['responsable-finance', 'assistant-finance'],
+    'Stock'               => ['responsable-stock', 'assistant-stock'],
+    'Archives'            => ['responsable-archives', 'assistant-archives'],
+];
+$selectedRoles = old('roles', []);
+$existingRoles = $roles->toArray();
+@endphp
+
 <a href="{{ route('users.index') }}" style="color:#60a5fa;text-decoration:none;font-size:13px;font-weight:500;display:inline-block;margin-bottom:20px;">&larr; Retour</a>
 
 <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:28px;max-width:640px;">
     <form method="POST" action="{{ route('users.store') }}">
         @csrf
 
+        @php $inputStyle = "width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:14px;font-family:inherit;color:#fff;outline:none;box-sizing:border-box;"; @endphp
+
+        {{-- Nom --}}
         <div style="margin-bottom:18px;">
-            <label for="name" style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px;">Nom</label>
-            <input type="text" name="name" id="name" value="{{ old('name') }}" required style="width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:14px;font-family:inherit;color:#fff;outline:none;" onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.12)'" onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'">
-            @error('name')
-                <span style="font-size:12px;color:#f87171;margin-top:5px;display:block;">{{ $message }}</span>
-            @enderror
+            <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px;">Nom complet</label>
+            <input type="text" name="name" value="{{ old('name') }}" required style="{{ $inputStyle }}" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+            @error('name')<span style="font-size:12px;color:#f87171;margin-top:4px;display:block;">{{ $message }}</span>@enderror
         </div>
 
+        {{-- Email --}}
         <div style="margin-bottom:18px;">
-            <label for="email" style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px;">Email</label>
-            <input type="email" name="email" id="email" value="{{ old('email') }}" required style="width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:14px;font-family:inherit;color:#fff;outline:none;" onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.12)'" onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'">
-            @error('email')
-                <span style="font-size:12px;color:#f87171;margin-top:5px;display:block;">{{ $message }}</span>
-            @enderror
+            <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px;">Email</label>
+            <input type="email" name="email" value="{{ old('email') }}" required style="{{ $inputStyle }}" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+            @error('email')<span style="font-size:12px;color:#f87171;margin-top:4px;display:block;">{{ $message }}</span>@enderror
         </div>
 
+        {{-- Mot de passe --}}
         <div style="margin-bottom:18px;">
-            <label for="password" style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px;">Mot de passe</label>
-            <input type="password" name="password" id="password" required style="width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:14px;font-family:inherit;color:#fff;outline:none;" onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.12)'" onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'">
-            @error('password')
-                <span style="font-size:12px;color:#f87171;margin-top:5px;display:block;">{{ $message }}</span>
-            @enderror
+            <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px;">Mot de passe</label>
+            <input type="password" name="password" required style="{{ $inputStyle }}" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+            @error('password')<span style="font-size:12px;color:#f87171;margin-top:4px;display:block;">{{ $message }}</span>@enderror
         </div>
 
-        <div style="margin-bottom:18px;">
-            <label for="role" style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px;">Rôle</label>
-            <select name="role" id="role" style="width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:14px;font-family:inherit;color:#fff;outline:none;" onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.12)'" onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'">
-                <option value="user" style="color:#000;" {{ old('role') == 'user' ? 'selected' : '' }}>user</option>
-                <option value="admin" style="color:#000;" {{ old('role') == 'admin' ? 'selected' : '' }}>admin</option>
+        {{-- Séparateur --}}
+        <div style="border-top:1px solid rgba(255,255,255,.06);margin:24px 0 20px;"></div>
+        <p style="font-size:12px;color:rgba(255,255,255,.35);margin-bottom:18px;">Cochez un ou plusieurs rôles selon les domaines que l'utilisateur doit gérer.</p>
+
+        {{-- Rôles (cases à cocher groupées) --}}
+        <div style="margin-bottom:22px;">
+            <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:14px;">Rôles & domaines d'accès</label>
+            @foreach($roleGroups as $domain => $domainRoles)
+            @php $available = array_filter($domainRoles, fn($r) => in_array($r, $existingRoles)); @endphp
+            @if(count($available))
+            <div style="margin-bottom:14px;">
+                <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;">{{ $domain }}</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    @foreach($available as $r)
+                    <label class="role-chip {{ in_array($r, $selectedRoles) ? 'role-chip--on' : '' }}" style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:{{ in_array($r, $selectedRoles) ? 'rgba(59,130,246,.1)' : 'rgba(255,255,255,.03)' }};border:1px solid {{ in_array($r, $selectedRoles) ? 'rgba(59,130,246,.45)' : 'rgba(255,255,255,.07)' }};border-radius:8px;cursor:pointer;user-select:none;transition:all .15s;">
+                        <input type="checkbox" name="roles[]" value="{{ $r }}"
+                               {{ in_array($r, $selectedRoles) ? 'checked' : '' }}
+                               onchange="onRoleChange()"
+                               style="accent-color:#3b82f6;width:14px;height:14px;cursor:pointer;flex-shrink:0;">
+                        <span style="font-size:12px;color:rgba(255,255,255,.75);font-family:inherit;white-space:nowrap;">{{ $r }}</span>
+                    </label>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+            @endforeach
+            @error('roles')<span style="font-size:12px;color:#f87171;margin-top:4px;display:block;">{{ $message }}</span>@enderror
+        </div>
+
+        {{-- Portée --}}
+        <div style="margin-bottom:28px;">
+            <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px;">
+                Portée d'accès aux données
+                <span style="font-size:10px;color:rgba(255,255,255,.3);font-weight:400;margin-left:6px;">(auto-rempli selon le rôle)</span>
+            </label>
+            <select name="scope" id="scopeSelect" style="{{ $inputStyle }}cursor:pointer;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                @foreach($scopes as $s)
+                    <option value="{{ $s }}" style="color:#000;" {{ old('scope', 'agent') == $s ? 'selected' : '' }}>
+                        {{ $s }} — {{ $scopeLabels[$s] ?? $s }}
+                    </option>
+                @endforeach
             </select>
-            @error('role')
-                <span style="font-size:12px;color:#f87171;margin-top:5px;display:block;">{{ $message }}</span>
-            @enderror
+            @error('scope')<span style="font-size:12px;color:#f87171;margin-top:4px;display:block;">{{ $message }}</span>@enderror
         </div>
 
-        <button type="submit" style="padding:11px 28px;background:#2563eb;border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;">Créer</button>
+        {{-- Agence + Fiche employé --}}
+        <div id="agenceSection">
+            <div style="border-top:1px solid rgba(255,255,255,.06);margin:24px 0 20px;"></div>
+
+            {{-- Agence --}}
+            <div style="margin-bottom:18px;">
+                <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px;">
+                    Agence
+                    <span style="font-size:10px;color:rgba(255,255,255,.3);font-weight:400;margin-left:6px;">accès restreint à cette agence</span>
+                </label>
+                <select name="agence_id" id="agenceSelect" style="{{ $inputStyle }}cursor:pointer;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                    <option value="" style="color:#000;">— Sélectionner une agence —</option>
+                    @foreach($agences as $id => $nom)
+                        <option value="{{ $id }}" style="color:#000;" {{ old('agence_id') == $id ? 'selected' : '' }}>
+                            {{ $nom }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('agence_id')<span style="font-size:12px;color:#f87171;margin-top:4px;display:block;">{{ $message }}</span>@enderror
+            </div>
+
+            {{-- Fiche employé --}}
+            <div style="margin-bottom:28px;">
+                <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px;">
+                    Fiche employé
+                    <span style="font-size:10px;color:rgba(255,255,255,.3);font-weight:400;margin-left:6px;">optionnel — synchronise l'agence automatiquement</span>
+                </label>
+                <select name="employee_id" id="employeeSelect" style="{{ $inputStyle }}cursor:pointer;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'" onchange="syncAgenceFromEmployee(this)">
+                    <option value="" data-agence="" style="color:#000;">— Aucune fiche liée —</option>
+                    @foreach($employees as $emp)
+                        <option value="{{ $emp->id }}" data-agence="{{ $emp->agence_id ?? '' }}" style="color:#000;" {{ old('employee_id') == $emp->id ? 'selected' : '' }}>
+                            {{ $emp->nom_complet }}{{ $emp->agence ? ' — '.$emp->agence->name_agence : '' }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('employee_id')<span style="font-size:12px;color:#f87171;margin-top:4px;display:block;">{{ $message }}</span>@enderror
+            </div>
+        </div>
+
+        <button type="submit" style="padding:11px 28px;background:#2563eb;border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;">Créer l'utilisateur</button>
     </form>
 </div>
+
+@push('scripts')
+<script>
+const dgRoles    = ['admin-systeme', 'dg'];
+const chefRoles  = ['chef-agence'];
+
+function onRoleChange() {
+    const checked = [...document.querySelectorAll('input[name="roles[]"]:checked')].map(c => c.value);
+    let scope = 'agent';
+    if (checked.some(r => dgRoles.includes(r)))   scope = 'dg';
+    else if (checked.some(r => chefRoles.includes(r))) scope = 'chef-agence';
+    document.getElementById('scopeSelect').value = scope;
+    toggleAgenceSection(scope);
+
+    document.querySelectorAll('input[name="roles[]"]').forEach(cb => {
+        const label = cb.closest('label');
+        label.style.borderColor  = cb.checked ? 'rgba(59,130,246,.45)' : 'rgba(255,255,255,.07)';
+        label.style.background   = cb.checked ? 'rgba(59,130,246,.1)'  : 'rgba(255,255,255,.03)';
+    });
+}
+
+function toggleAgenceSection(scope) {
+    const s = document.getElementById('agenceSection');
+    if (s) s.style.display = scope === 'dg' ? 'none' : '';
+}
+
+function syncAgenceFromEmployee(select) {
+    const agenceId = select.options[select.selectedIndex].getAttribute('data-agence');
+    const agenceSelect = document.getElementById('agenceSelect');
+    if (agenceId && agenceSelect) agenceSelect.value = agenceId;
+}
+
+document.getElementById('scopeSelect').addEventListener('change', function() {
+    toggleAgenceSection(this.value);
+});
+
+onRoleChange();
+</script>
+@endpush
 @endsection
