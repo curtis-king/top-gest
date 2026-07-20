@@ -66,6 +66,24 @@
                     <input type="text" name="secteur_activites" value="{{ old('secteur_activites', $contact->secteur_activites) }}" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
                     @error('secteur_activites') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
                 </div>
+                <div>
+                    <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">NIU (identifiant fiscal)</label>
+                    <input type="text" name="niu" value="{{ old('niu', $contact->niu) }}" placeholder="Requis pour la certification SFEC si entreprise/état" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                    @error('niu') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
+                <div>
+                    <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">Type de client (SFEC)</label>
+                    <select name="type_client_sfec" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;cursor:pointer;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                        <option value="" style="color:#000;">Déduit automatiquement</option>
+                        @foreach(array_keys(config('sfec.recipient_types')) as $key)
+                            <option value="{{ $key }}" {{ old('type_client_sfec', $contact->type_client_sfec) == $key ? 'selected' : '' }} style="color:#000;">{{ $key }}</option>
+                        @endforeach
+                    </select>
+                    @error('type_client_sfec') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
+                </div>
             </div>
 
             <div style="margin-bottom:18px;">

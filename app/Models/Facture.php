@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\TypeFacture;
 use App\Enums\StatutFacture;
+use App\Enums\StatutCertification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,6 +20,15 @@ class Facture extends Model
         'contact_id',
         'agence_id',
         'objet',
+        'statut_certification',
+        'mode_paiement',
+        'certification_number',
+        'certification_signature',
+        'certification_short_signature',
+        'certification_qr_code',
+        'certification_date',
+        'sfec_identifier',
+        'certification_error',
     ];
 
     protected function casts(): array
@@ -27,6 +37,8 @@ class Facture extends Model
             'date_facture' => 'date',
             'type_facture' => TypeFacture::class,
             'statut_facture' => StatutFacture::class,
+            'statut_certification' => StatutCertification::class,
+            'certification_date' => 'datetime',
         ];
     }
 

@@ -13,6 +13,8 @@ class ItemFacture extends Model
         'description',
         'quantite',
         'prix_unitaire',
+        'taux_tva',
+        'type_article',
         'facture_id',
     ];
 

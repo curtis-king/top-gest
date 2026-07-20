@@ -26,6 +26,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeePdfController;
 use App\Http\Controllers\EmployeeWizardController;
 use App\Http\Controllers\EcritureComptableController;
+use App\Http\Controllers\FactureCertificationController;
 use App\Http\Controllers\FactureController;
 use App\Http\Controllers\FacturePdfController;
 use App\Http\Controllers\FonctionController;
@@ -160,6 +161,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('factures/{facture}/statut', [FactureController::class, 'updateStatut'])
         ->name('factures.statut')
         ->middleware('permission:finance.factures.valider');
+
+    Route::post('factures/{facture}/certifier', [FactureCertificationController::class, 'certifier'])
+        ->name('factures.certifier')
+        ->middleware('permission:finance.factures.certifier');
 
     Route::post('ecritures-comptables/{ecritureComptable}/valider', [EcritureComptableController::class, 'valider'])
         ->name('ecritures-comptables.valider')

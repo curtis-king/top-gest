@@ -30,6 +30,12 @@
     </div>
 @endif
 
+@if(session('error'))
+    <div style="padding:12px 16px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);border-radius:8px;color:#f87171;font-size:13px;font-weight:500;margin-bottom:20px;">
+        {{ session('error') }}
+    </div>
+@endif
+
 @php
     $tv = $facture->type_facture?->value ?? 'vente';
     $sv = $facture->statut_facture?->value ?? 'brouillon';
@@ -107,6 +113,46 @@
             </div>
         @endif
     </div>
+
+    {{-- CERTIFICATION SFEC --}}
+    @if($tv === 'vente')
+    @php
+        $scert = $facture->statut_certification?->value ?? 'non_certifiee';
+        $ccert = ['non_certifiee'=>'#94a3b8','certifiee'=>'#4ade80','echec'=>'#f87171'][$scert]??'rgba(255,255,255,.45)';
+        $labelCert = ['non_certifiee'=>'Non certifiée','certifiee'=>'Certifiée','echec'=>'Échec'][$scert]??$scert;
+    @endphp
+    <div class="mg-card mg-card-full">
+        <div class="mg-section-title">Certification SFEC</div>
+
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+            <span class="badge" style="background:{{ $ccert }}22;color:{{ $ccert }};">{{ $labelCert }}</span>
+            @if($scert === 'echec' && $facture->certification_error)
+                <span style="font-size:12px;color:rgba(255,255,255,.4);" title="{{ $facture->certification_error }}">{{ \Illuminate\Support\Str::limit($facture->certification_error, 80) }}</span>
+            @endif
+        </div>
+
+        @if($scert === 'certifiee')
+            <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;">
+                <div>
+                    <div class="mg-label">Numéro de certification</div>
+                    <div class="mg-value">{{ $facture->certification_number ?? '—' }}</div>
+                    <div class="mg-label" style="margin-top:10px;">Date de certification</div>
+                    <div class="mg-value">{{ $facture->certification_date?->format('d/m/Y H:i') ?? '—' }}</div>
+                </div>
+                @if($facture->certification_qr_code)
+                    <div>
+                        <img src="data:image/png;base64,{{ $facture->certification_qr_code }}" alt="QR code de certification" style="width:110px;height:110px;background:#fff;border-radius:8px;padding:4px;">
+                    </div>
+                @endif
+            </div>
+        @else
+            <form method="POST" action="{{ route('factures.certifier', $facture) }}">
+                @csrf
+                <button type="submit" class="mg-btn" style="background:#2563eb;color:#fff;">Certifier cette facture</button>
+            </form>
+        @endif
+    </div>
+    @endif
 
     {{-- ITEMS --}}
     <div class="mg-card mg-card-full">

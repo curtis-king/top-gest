@@ -79,6 +79,8 @@ class ContactController extends Controller
             'adresse' => ['nullable', 'string'],
             'secteur_activites' => ['nullable', 'string', 'max:255'],
             'agence_id' => ['nullable', 'exists:agences,id'],
+            'niu' => ['nullable', 'string', 'max:20'],
+            'type_client_sfec' => ['nullable', 'string'],
         ]);
 
         Contact::create($validated);
@@ -113,6 +115,8 @@ class ContactController extends Controller
             'adresse' => ['nullable', 'string'],
             'secteur_activites' => ['nullable', 'string', 'max:255'],
             'agence_id' => ['nullable', 'exists:agences,id'],
+            'niu' => ['nullable', 'string', 'max:20'],
+            'type_client_sfec' => ['nullable', 'string'],
         ]);
 
         $contact->update($validated);

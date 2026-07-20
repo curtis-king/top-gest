@@ -18,6 +18,8 @@ class Contact extends Model
         'adresse',
         'secteur_activites',
         'agence_id',
+        'niu',
+        'type_client_sfec',
     ];
 
     protected function casts(): array

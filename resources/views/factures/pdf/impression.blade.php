@@ -171,6 +171,18 @@
         }
         .signature-line { border-top: 0.5px solid #333; display: inline-block; width: 140px; }
         .signature-sub { font-size: 10px; }
+
+        /* Certification SFEC */
+        .certification-area {
+            position: fixed;
+            bottom: 22mm;
+            left: 20mm;
+            text-align: left;
+            font-size: 9px;
+            color: #333;
+        }
+        .certification-area img { width: 70px; height: 70px; }
+        .certification-number { font-weight: bold; margin-top: 3px; }
     </style>
 </head>
 <body>
@@ -326,6 +338,16 @@
         <div class="signature-line"></div><br>
         <div class="signature-sub">Directeur Général</div>
     </div>
+
+    {{-- ── Certification SFEC ── --}}
+    @if($facture->statut_certification?->value === 'certifiee')
+        <div class="certification-area">
+            @if($facture->certification_qr_code)
+                <img src="data:image/png;base64,{{ $facture->certification_qr_code }}" alt="QR SFEC">
+            @endif
+            <div class="certification-number">Certifiée SFEC N° {{ $facture->certification_number }}</div>
+        </div>
+    @endif
 
 </div>
 </body>

@@ -23,6 +23,7 @@ class PermissionSeeder extends Seeder
             // Finance
             'finance.view', 'finance.create', 'finance.update', 'finance.delete',
             'finance.factures.valider',
+            'finance.factures.certifier',
             'finance.ecritures.valider',
             'finance.depenses.valider',
             // Stock
@@ -48,7 +49,7 @@ class PermissionSeeder extends Seeder
         $allBusiness = array_merge(
             $crud('rh'),
             $crud('projets'), ['projets.status'],
-            $crud('finance'), ['finance.factures.valider', 'finance.ecritures.valider', 'finance.depenses.valider'],
+            $crud('finance'), ['finance.factures.valider', 'finance.factures.certifier', 'finance.ecritures.valider', 'finance.depenses.valider'],
             $crud('stock'),
             $crud('archives'),
         );
@@ -67,7 +68,7 @@ class PermissionSeeder extends Seeder
             'responsable-projets' => array_merge($crud('projets'), ['projets.status']),
             'assistant-projets'   => $assistant('projets'),
 
-            'responsable-finance' => array_merge($crud('finance'), ['finance.factures.valider', 'finance.ecritures.valider', 'finance.depenses.valider']),
+            'responsable-finance' => array_merge($crud('finance'), ['finance.factures.valider', 'finance.factures.certifier', 'finance.ecritures.valider', 'finance.depenses.valider']),
             'assistant-finance'   => $assistant('finance'),
 
             'responsable-stock'   => $crud('stock'),
