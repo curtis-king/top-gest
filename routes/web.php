@@ -130,6 +130,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('factures/{facture}/manage', [FactureController::class, 'manage'])->name('factures.manage');
         Route::post('factures/{facture}/items', [FactureController::class, 'storeItem'])->name('factures.items.store');
         Route::delete('items-facture/{itemFacture}', [FactureController::class, 'destroyItem'])->name('factures.items.destroy');
+        Route::post('factures/{facture}/tva', [FactureController::class, 'toggleTva'])->name('factures.tva.toggle');
+        Route::post('factures/{facture}/centimes-additionnels', [FactureController::class, 'toggleCentimesAdditionnels'])->name('factures.centimes-additionnels.toggle');
         Route::get('factures/{facture}/pdf', [FacturePdfController::class, 'preview'])->name('factures.pdf');
         Route::get('factures/{facture}/pdf/stream', [FacturePdfController::class, 'stream'])->name('factures.pdf.stream');
         Route::get('factures/{facture}/pdf/download', [FacturePdfController::class, 'download'])->name('factures.pdf.download');

@@ -191,6 +191,7 @@ class FactureController extends Controller
         ]);
 
         $validated['facture_id'] = $facture->id;
+        $validated['taux_tva'] = $facture->tva_active ? 18 : 0;
         ItemFacture::create($validated);
 
         return redirect()->route('factures.manage', $facture)
@@ -216,6 +217,26 @@ class FactureController extends Controller
 
         return redirect()->route('factures.manage', $facture)
             ->with('success', 'Statut mis à jour.');
+    }
+
+    public function toggleTva(Facture $facture): RedirectResponse
+    {
+        $facture->tva_active = !$facture->tva_active;
+        $facture->save();
+
+        $facture->items()->update(['taux_tva' => $facture->tva_active ? 18 : 0]);
+
+        return redirect()->route('factures.manage', $facture)
+            ->with('success', $facture->tva_active ? 'TVA (18%) activée sur la facture.' : 'TVA désactivée sur la facture.');
+    }
+
+    public function toggleCentimesAdditionnels(Facture $facture): RedirectResponse
+    {
+        $facture->centimes_additionnels_actif = !$facture->centimes_additionnels_actif;
+        $facture->save();
+
+        return redirect()->route('factures.manage', $facture)
+            ->with('success', $facture->centimes_additionnels_actif ? 'Centimes additionnels (5%) activés.' : 'Centimes additionnels désactivés.');
     }
 
     private function nextNumero(): string

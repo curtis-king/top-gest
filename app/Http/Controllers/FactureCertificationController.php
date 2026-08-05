@@ -91,12 +91,15 @@ class FactureCertificationController extends Controller
     {
         $signature = $data['signature'] ?? $data['certification_signature'] ?? null;
         $shortSignature = $data['short_signature'] ?? $data['certification_short_signature'] ?? null;
+        $qrCode = $data['qr_code'] ?? $data['certification_qr_code'] ?? null;
 
         return [
             'certification_number' => $data['certification_number'] ?? $signature,
             'certification_signature' => $signature,
             'certification_short_signature' => $shortSignature,
-            'certification_qr_code' => $data['qr_code'] ?? $data['certification_qr_code'] ?? null,
+            // Le SFEC renvoie déjà le QR code préfixé "data:image/png;base64,...", alors que
+            // les vues rajoutent ce même préfixe à l'affichage : on ne stocke que le base64 brut.
+            'certification_qr_code' => $qrCode ? preg_replace('/^data:image\/[a-z]+;base64,/i', '', $qrCode) : null,
             'certification_date' => $data['certification_date'] ?? now(),
             'sfec_identifier' => $data['identifier'] ?? $shortSignature,
         ];

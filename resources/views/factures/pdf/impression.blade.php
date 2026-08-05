@@ -199,9 +199,10 @@
     $facture->loadMissing(['items', 'contact', 'agence']);
 
     $contact   = $facture->contact;
-    $net       = $facture->items->sum(fn($i) => $i->quantite * $i->prix_unitaire);
-    $tva       = (int) round($net * 0.10);
-    $ttc       = $net + $tva;
+    $net       = $facture->total;
+    $tva       = $facture->montant_tva;
+    $centimes  = $facture->montant_centimes_additionnels;
+    $ttc       = $facture->total_ttc;
 
     $typeLabel = match($facture->type_facture?->value) {
         'proforma' => 'PROFORMA',
@@ -263,8 +264,7 @@
                 @if(file_exists($logoPath))
                     <img src="{{ $logoPath }}">
                 @endif
-                <div class="company-name">{{ $facture->agence?->name_agence ?? 'TOPINFO' }}</div>
-                <div class="company-sub">SOLUTIONS INFORMATIQUES</div>
+                
             </td>
         </tr>
     </table>
@@ -313,10 +313,20 @@
             </tr>
 
             {{-- TVA --}}
+            @if($facture->tva_active)
             <tr class="row-tva">
-                <td colspan="5" style="text-align:right;">TVA 10%</td>
+                <td colspan="5" style="text-align:right;">TVA 18%</td>
                 <td style="text-align:right;">{{ $fmt($tva) }}</td>
             </tr>
+            @endif
+
+            {{-- CENTIMES ADDITIONNELS --}}
+            @if($facture->centimes_additionnels_actif)
+            <tr class="row-tva">
+                <td colspan="5" style="text-align:right;">Centimes additionnels 5%</td>
+                <td style="text-align:right;">{{ $fmt($centimes) }}</td>
+            </tr>
+            @endif
 
             {{-- TOTAL TTC --}}
             <tr class="row-ttc">

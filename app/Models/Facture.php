@@ -22,6 +22,8 @@ class Facture extends Model
         'objet',
         'statut_certification',
         'mode_paiement',
+        'tva_active',
+        'centimes_additionnels_actif',
         'certification_number',
         'certification_signature',
         'certification_short_signature',
@@ -39,6 +41,8 @@ class Facture extends Model
             'statut_facture' => StatutFacture::class,
             'statut_certification' => StatutCertification::class,
             'certification_date' => 'datetime',
+            'tva_active' => 'boolean',
+            'centimes_additionnels_actif' => 'boolean',
         ];
     }
 
@@ -60,5 +64,20 @@ class Facture extends Model
     public function getTotalAttribute(): float
     {
         return $this->items->sum(fn($i) => $i->quantite * $i->prix_unitaire);
+    }
+
+    public function getMontantTvaAttribute(): float
+    {
+        return (float) $this->items->sum(fn($i) => $i->quantite * $i->prix_unitaire * ((float) $i->taux_tva) / 100);
+    }
+
+    public function getMontantCentimesAdditionnelsAttribute(): float
+    {
+        return $this->centimes_additionnels_actif ? round($this->montant_tva * 0.05) : 0.0;
+    }
+
+    public function getTotalTtcAttribute(): float
+    {
+        return $this->total + $this->montant_tva + $this->montant_centimes_additionnels;
     }
 }

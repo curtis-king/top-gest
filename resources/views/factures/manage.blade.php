@@ -93,10 +93,41 @@
             <button type="submit" class="mg-btn" style="background:#2563eb;color:#fff;white-space:nowrap;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">Mettre à jour</button>
         </form>
 
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+            <form method="POST" action="{{ route('factures.tva.toggle', $facture) }}">
+                @csrf
+                <button type="submit" class="mg-btn" style="background:{{ $facture->tva_active ? 'rgba(74,222,128,.12)' : 'rgba(255,255,255,.06)' }};color:{{ $facture->tva_active ? '#4ade80' : 'rgba(255,255,255,.5)' }};">
+                    TVA 18% {{ $facture->tva_active ? '✓' : '—' }}
+                </button>
+            </form>
+            <form method="POST" action="{{ route('factures.centimes-additionnels.toggle', $facture) }}">
+                @csrf
+                <button type="submit" class="mg-btn" style="background:{{ $facture->centimes_additionnels_actif ? 'rgba(74,222,128,.12)' : 'rgba(255,255,255,.06)' }};color:{{ $facture->centimes_additionnels_actif ? '#4ade80' : 'rgba(255,255,255,.5)' }};">
+                    Centimes additionnels 5% {{ $facture->centimes_additionnels_actif ? '✓' : '—' }}
+                </button>
+            </form>
+        </div>
+
         <div style="padding-top:12px;border-top:1px solid rgba(255,255,255,.04);">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="font-size:12px;color:rgba(255,255,255,.45);">Total</span>
-                <span style="font-size:26px;font-weight:700;color:#4ade80;">{{ number_format($total, 0, ',', ' ') }} FCFA</span>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">
+                <span style="font-size:12px;color:rgba(255,255,255,.45);">Total HT</span>
+                <span style="font-size:14px;font-weight:600;color:#f1f5f9;">{{ number_format($total, 0, ',', ' ') }} FCFA</span>
+            </div>
+            @if($facture->tva_active)
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">
+                <span style="font-size:12px;color:rgba(255,255,255,.45);">TVA (18%)</span>
+                <span style="font-size:14px;font-weight:600;color:#f1f5f9;">{{ number_format($facture->montant_tva, 0, ',', ' ') }} FCFA</span>
+            </div>
+            @endif
+            @if($facture->centimes_additionnels_actif)
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">
+                <span style="font-size:12px;color:rgba(255,255,255,.45);">Centimes additionnels (5%)</span>
+                <span style="font-size:14px;font-weight:600;color:#f1f5f9;">{{ number_format($facture->montant_centimes_additionnels, 0, ',', ' ') }} FCFA</span>
+            </div>
+            @endif
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;margin-top:4px;border-top:1px solid rgba(255,255,255,.06);">
+                <span style="font-size:12px;color:rgba(255,255,255,.45);">Total TTC</span>
+                <span style="font-size:26px;font-weight:700;color:#4ade80;">{{ number_format($facture->total_ttc, 0, ',', ' ') }} FCFA</span>
             </div>
         </div>
 

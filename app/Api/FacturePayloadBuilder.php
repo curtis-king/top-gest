@@ -17,7 +17,8 @@ class FacturePayloadBuilder
         $totalTaxRAmount = 0;
         $totalExemptAmount = $items->where('_taux_tva', '<=', 0)->sum('net_amount');
         $totalTaxAmount = $items->sum('tax_amount');
-        $totalAmount = $subtotal + $totalTaxAmount;
+        $additionalCentTax = $facture->centimes_additionnels_actif ? round($totalTaxAmount * 0.05) : 0;
+        $totalAmount = $subtotal + $totalTaxAmount + $additionalCentTax;
 
         $contact = $facture->contact;
         $recipientTypeKey = $contact?->type_client_sfec ?? ($contact?->raison_social ? 'entreprise' : 'particulier');
@@ -43,7 +44,7 @@ class FacturePayloadBuilder
             'total_tax_amount' => $totalTaxAmount,
             'discount_amount' => 0,
             'total_line_discount_amount' => 0,
-            'additional_cent_tax' => 0,
+            'additional_cent_tax' => $additionalCentTax,
             'electronic_stamp_duty' => 0,
             'amount_due' => $totalAmount,
             'total_amount' => $totalAmount,
