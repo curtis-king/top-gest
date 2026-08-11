@@ -146,14 +146,28 @@
     </div>
 
     {{-- CERTIFICATION SFEC --}}
-    @if($tv === 'vente')
+    @if(in_array($tv, ['vente', 'avoir']))
     @php
         $scert = $facture->statut_certification?->value ?? 'non_certifiee';
         $ccert = ['non_certifiee'=>'#94a3b8','certifiee'=>'#4ade80','echec'=>'#f87171'][$scert]??'rgba(255,255,255,.45)';
         $labelCert = ['non_certifiee'=>'Non certifiée','certifiee'=>'Certifiée','echec'=>'Échec'][$scert]??$scert;
+        $origineNonCertifiee = $tv === 'avoir' && (!$facture->facture_origine_id || $facture->factureOrigine?->statut_certification?->value !== 'certifiee');
     @endphp
     <div class="mg-card mg-card-full">
         <div class="mg-section-title">Certification SFEC</div>
+
+        @if($tv === 'avoir')
+            <div style="margin-bottom:14px;">
+                <div class="mg-label">Facture d'origine</div>
+                <div class="mg-value">
+                    @if($facture->factureOrigine)
+                        <a href="{{ route('factures.manage', $facture->factureOrigine) }}" style="color:#60a5fa;text-decoration:none;">{{ $facture->factureOrigine->numero_facture }}</a>
+                    @else
+                        <span style="color:#f87171;">Aucune — requise pour certifier cet avoir</span>
+                    @endif
+                </div>
+            </div>
+        @endif
 
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
             <span class="badge" style="background:{{ $ccert }}22;color:{{ $ccert }};">{{ $labelCert }}</span>
@@ -176,10 +190,18 @@
                     </div>
                 @endif
             </div>
+            @if($tv === 'vente')
+                <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06);">
+                    <a href="{{ route('factures.create', ['avoir_de' => $facture->id]) }}" class="mg-btn" style="background:rgba(255,255,255,.06);color:#f1f5f9;text-decoration:none;display:inline-block;">Créer un avoir pour cette facture</a>
+                </div>
+            @endif
         @else
+            @if($origineNonCertifiee)
+                <div style="font-size:12px;color:#f59e0b;margin-bottom:10px;">La facture d'origine doit d'abord être certifiée avant de pouvoir certifier cet avoir.</div>
+            @endif
             <form method="POST" action="{{ route('factures.certifier', $facture) }}">
                 @csrf
-                <button type="submit" class="mg-btn" style="background:#2563eb;color:#fff;">Certifier cette facture</button>
+                <button type="submit" class="mg-btn" style="background:#2563eb;color:#fff;" {{ $origineNonCertifiee ? 'disabled' : '' }}>Certifier {{ $tv === 'avoir' ? 'cet avoir' : 'cette facture' }}</button>
             </form>
         @endif
     </div>
@@ -201,6 +223,36 @@
                 </div>
                 <form method="POST" action="{{ route('factures.items.store', $facture) }}">
                     @csrf
+                    <div style="margin-bottom:16px;">
+                        <div class="mg-label" style="margin-bottom:4px;">Type d'article</div>
+                        <select name="type_article" id="item-type-article" class="mg-select" onchange="document.getElementById('bloc-item-produit').style.display = this.value === 'produit' ? 'block' : 'none';">
+                            <option value="service">Service / prestation intellectuelle</option>
+                            <option value="produit">Produit (stocké)</option>
+                        </select>
+                    </div>
+                    <div id="bloc-item-produit" style="display:none;margin-bottom:16px;padding:12px;background:rgba(255,255,255,.03);border-radius:10px;">
+                        <div style="margin-bottom:12px;">
+                            <div class="mg-label" style="margin-bottom:4px;">Produit</div>
+                            <select name="produit_id" id="item-produit-id" class="mg-select" onchange="const opt=this.options[this.selectedIndex]; if(opt.value){ document.querySelector('[name=description]').value = opt.text; }">
+                                <option value="">Sélectionner un produit</option>
+                                @foreach($produits as $id => $nom)
+                                    <option value="{{ $id }}">{{ $nom }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <div class="mg-label" style="margin-bottom:4px;">Dépôt (sortie de stock)</div>
+                            <select name="depot_id" class="mg-select">
+                                <option value="">Sélectionner un dépôt</option>
+                                @foreach($depots as $id => $nom)
+                                    <option value="{{ $id }}">{{ $nom }}</option>
+                                @endforeach
+                            </select>
+                            @if($depots->isEmpty())
+                                <div style="font-size:11px;color:#f59e0b;margin-top:4px;">Aucun dépôt pour l'agence de cette facture.</div>
+                            @endif
+                        </div>
+                    </div>
                     <div style="margin-bottom:16px;">
                         <div class="mg-label" style="margin-bottom:4px;">Description</div>
                         <input type="text" name="description" placeholder="Ex: Prestation de service" class="mg-input" required>
@@ -239,7 +291,12 @@
                     @forelse($facture->items as $item)
                         @php $st = $item->quantite * $item->prix_unitaire; @endphp
                         <tr style="border-bottom:1px solid rgba(255,255,255,.04);">
-                            <td style="padding:12px 8px;color:#f1f5f9;">{{ $item->description }}</td>
+                            <td style="padding:12px 8px;color:#f1f5f9;">
+                                {{ $item->description }}
+                                @if($item->produit_id)
+                                    <span class="badge" style="background:rgba(96,165,250,.12);color:#60a5fa;font-size:10px;padding:2px 8px;margin-left:6px;">stock</span>
+                                @endif
+                            </td>
                             <td style="padding:12px 8px;text-align:center;color:rgba(255,255,255,.65);">{{ $item->quantite }}</td>
                             <td style="padding:12px 8px;text-align:right;color:rgba(255,255,255,.65);">{{ number_format($item->prix_unitaire, 0, ',', ' ') }}</td>
                             <td style="padding:12px 8px;text-align:right;color:#4ade80;font-weight:600;">{{ number_format($st, 0, ',', ' ') }}</td>

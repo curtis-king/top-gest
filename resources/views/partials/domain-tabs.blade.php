@@ -6,8 +6,9 @@ $domainPrefixes = [
     'rh'      => ['employees','dossiers-employees','conges','retenus','primes',
                   'payements-employees','compagnies','agences','fonctions'],
     'projets' => ['projects','taches-projects','affectation-taches'],
-    'finance' => ['factures','contacts','banques','livrets-bancaires','depenses','categories-depenses',
+    'finance' => ['factures','banques','livrets-bancaires','depenses','categories-depenses',
                   'comptes-comptables','journaux-comptables','ecritures-comptables','comptabilite'],
+    'contacts'=> ['contacts'],
     'stock'   => ['stocks','produits','mouvements-stocks','depots','categories-produits'],
     'archives'=> ['documents','categories-documents'],
     'systeme' => ['users'],
@@ -40,7 +41,6 @@ $tabs = [
     ],
     'finance' => [
         ['Factures',    'factures.index',              'factures'],
-        ['Contacts',    'contacts.index',              'contacts'],
         ['Banques',     'banques.index',               'banques'],
         ['Livrets',     'livrets-bancaires.index',      'livrets-bancaires'],
         ['Dépenses',    'depenses.index',               'depenses'],
@@ -52,6 +52,9 @@ $tabs = [
         ['Balance',     'comptabilite.balance',         'comptabilite.balance'],
         ['Bilan',       'comptabilite.bilan',           'comptabilite.bilan'],
         ['Résultat',    'comptabilite.resultat',        'comptabilite.resultat'],
+    ],
+    'contacts' => [
+        ['Contacts', 'contacts.index', 'contacts'],
     ],
     'stock' => [
         ['Tableau de bord',  'stocks.dashboard',          'stocks.dashboard'],

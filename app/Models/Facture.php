@@ -18,6 +18,7 @@ class Facture extends Model
         'statut_facture',
         'raison_social',
         'contact_id',
+        'facture_origine_id',
         'agence_id',
         'objet',
         'statut_certification',
@@ -59,6 +60,16 @@ class Facture extends Model
     public function agence(): BelongsTo
     {
         return $this->belongsTo(Agence::class);
+    }
+
+    public function factureOrigine(): BelongsTo
+    {
+        return $this->belongsTo(Facture::class, 'facture_origine_id');
+    }
+
+    public function avoirs(): HasMany
+    {
+        return $this->hasMany(Facture::class, 'facture_origine_id');
     }
 
     public function getTotalAttribute(): float

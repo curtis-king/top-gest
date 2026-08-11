@@ -15,9 +15,9 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
                 <div>
                     <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">Type de facture</label>
-                    <select name="type_facture" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;cursor:pointer;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                    <select name="type_facture" id="type_facture" onchange="document.getElementById('bloc-facture-origine').style.display = this.value === 'avoir' ? 'block' : 'none';" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;cursor:pointer;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
                         @foreach($types as $t)
-                            <option value="{{ $t->value }}" {{ old('type_facture') == $t->value ? 'selected' : '' }} style="color:#000;">{{ $t->value }}</option>
+                            <option value="{{ $t->value }}" {{ old('type_facture', $factureOrigine ? 'avoir' : null) == $t->value ? 'selected' : '' }} style="color:#000;">{{ $t->value }}</option>
                         @endforeach
                     </select>
                     @error('type_facture') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
@@ -48,7 +48,7 @@
 
             <div style="margin-bottom:18px;">
                 <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">Client (raison sociale libre)</label>
-                <input type="text" name="raison_social" value="{{ old('raison_social') }}" placeholder="Ou sélectionner un contact ci-dessous" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                <input type="text" name="raison_social" value="{{ old('raison_social', $factureOrigine?->raison_social) }}" placeholder="Ou sélectionner un contact ci-dessous" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
                 @error('raison_social') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
             </div>
 
@@ -58,7 +58,7 @@
                     <select name="contact_id" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;cursor:pointer;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
                         <option value="" style="color:#000;">Aucun</option>
                         @foreach($contacts as $id => $name)
-                            <option value="{{ $id }}" {{ old('contact_id') == $id ? 'selected' : '' }} style="color:#000;">{{ $name }}</option>
+                            <option value="{{ $id }}" {{ old('contact_id', $factureOrigine?->contact_id) == $id ? 'selected' : '' }} style="color:#000;">{{ $name }}</option>
                         @endforeach
                     </select>
                     @error('contact_id') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
@@ -68,11 +68,23 @@
                     <select name="agence_id" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;cursor:pointer;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
                         <option value="" style="color:#000;">Sélectionner</option>
                         @foreach($agences as $id => $name)
-                            <option value="{{ $id }}" {{ old('agence_id') == $id ? 'selected' : '' }} style="color:#000;">{{ $name }}</option>
+                            <option value="{{ $id }}" {{ old('agence_id', $factureOrigine?->agence_id) == $id ? 'selected' : '' }} style="color:#000;">{{ $name }}</option>
                         @endforeach
                     </select>
                     @error('agence_id') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
                 </div>
+            </div>
+
+            <div id="bloc-facture-origine" style="margin-bottom:18px;display:{{ ($factureOrigine || old('type_facture') === 'avoir') ? 'block' : 'none' }};">
+                <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">Facture d'origine (avoir)</label>
+                <select name="facture_origine_id" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;cursor:pointer;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                    <option value="" style="color:#000;">Aucune</option>
+                    @foreach($factures as $id => $numero)
+                        <option value="{{ $id }}" {{ old('facture_origine_id', $factureOrigine?->id) == $id ? 'selected' : '' }} style="color:#000;">{{ $numero }}</option>
+                    @endforeach
+                </select>
+                <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px;">La facture de vente que cet avoir corrige/annule. Nécessaire pour la certifier auprès du SFEC.</div>
+                @error('facture_origine_id') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
             </div>
 
             <div style="margin-bottom:18px;">

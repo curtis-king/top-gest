@@ -6,6 +6,7 @@ use App\Models\PayementEmployee;
 use App\Models\Employee;
 use App\Models\Fonction;
 use App\Enums\StatusPayement;
+use App\Services\PaieCalculatorService;
 use App\Http\Controllers\Traits\Sortable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,6 +15,10 @@ use Illuminate\View\View;
 class PayementEmployeeController extends Controller
 {
     use Sortable;
+
+    public function __construct(private PaieCalculatorService $paieCalculator)
+    {
+    }
 
     public function index(): View
     {
@@ -55,15 +60,14 @@ class PayementEmployeeController extends Controller
             'employee_id' => ['required', 'exists:employees,id'],
             'mois' => ['required', 'string', 'max:20'],
             'annee' => ['required', 'string', 'max:10'],
-            'salaire_base' => ['required', 'numeric', 'min:0'],
-            'total_primes' => ['nullable', 'numeric', 'min:0'],
-            'total_retenus' => ['nullable', 'numeric', 'min:0'],
-            'net_a_payer' => ['required', 'numeric', 'min:0'],
             'status' => ['required', 'string'],
             'date_paiement' => ['nullable', 'date'],
         ]);
 
-        PayementEmployee::create($validated);
+        $employee = Employee::findOrFail($validated['employee_id']);
+        $montants = $this->paieCalculator->calculer($employee, $validated['mois'], $validated['annee']);
+
+        PayementEmployee::create(array_merge($validated, $montants));
 
         return redirect()->route('payements-employees.index')
             ->with('success', 'Paiement créé avec succès.');
@@ -78,6 +82,8 @@ class PayementEmployeeController extends Controller
 
     public function edit(PayementEmployee $payementEmployee): View
     {
+        abort_if($payementEmployee->status === StatusPayement::Paye, 403, 'Ce paiement est déjà marqué payé : non modifiable.');
+
         $employees = Employee::pluck('nom_complet', 'id');
         $statuses = StatusPayement::cases();
 
@@ -102,19 +108,20 @@ class PayementEmployeeController extends Controller
 
     public function update(Request $request, PayementEmployee $payementEmployee): RedirectResponse
     {
+        abort_if($payementEmployee->status === StatusPayement::Paye, 403, 'Ce paiement est déjà marqué payé : non modifiable.');
+
         $validated = $request->validate([
             'employee_id' => ['required', 'exists:employees,id'],
             'mois' => ['required', 'string', 'max:20'],
             'annee' => ['required', 'string', 'max:10'],
-            'salaire_base' => ['required', 'numeric', 'min:0'],
-            'total_primes' => ['nullable', 'numeric', 'min:0'],
-            'total_retenus' => ['nullable', 'numeric', 'min:0'],
-            'net_a_payer' => ['required', 'numeric', 'min:0'],
             'status' => ['required', 'string'],
             'date_paiement' => ['nullable', 'date'],
         ]);
 
-        $payementEmployee->update($validated);
+        $employee = Employee::findOrFail($validated['employee_id']);
+        $montants = $this->paieCalculator->calculer($employee, $validated['mois'], $validated['annee']);
+
+        $payementEmployee->update(array_merge($validated, $montants));
 
         return redirect()->route('payements-employees.index')
             ->with('success', 'Paiement mis à jour avec succès.');

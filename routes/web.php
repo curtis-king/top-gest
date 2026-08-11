@@ -117,11 +117,12 @@ Route::middleware(['auth'])->group(function () {
         ->name('taches-projects.status-inline')
         ->middleware('permission:projets.status');
 
+    // ── Contacts (accessible à tous les utilisateurs connectés, pas seulement Finance) ──
+    Route::get('contacts/search', [ContactController::class, 'search'])->name('contacts.search');
+    Route::resource('contacts', ContactController::class)->parameters(['contacts' => 'contact']);
+
     // ── Finance ───────────────────────────────────────────────────────
     Route::middleware('permission:finance.view')->group(function () {
-        Route::get('contacts/search', [ContactController::class, 'search'])->name('contacts.search');
-        Route::resource('contacts', ContactController::class)->parameters(['contacts' => 'contact']);
-
         Route::resource('banques', BanqueController::class)->parameters(['banques' => 'banque']);
         Route::resource('livrets-bancaires', LivretBancaireController::class)->parameters(['livrets-bancaires' => 'livretBancaire']);
 

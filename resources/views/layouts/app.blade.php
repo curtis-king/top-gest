@@ -359,7 +359,8 @@ $_domainMap = [
     'employees'=>'rh','dossiers-employees'=>'rh','conges'=>'rh','retenus'=>'rh',
     'primes'=>'rh','payements-employees'=>'rh','compagnies'=>'rh','agences'=>'rh','fonctions'=>'rh',
     'projects'=>'projets','taches-projects'=>'projets','affectation-taches'=>'projets',
-    'factures'=>'finance','contacts'=>'finance','banques'=>'finance','livrets-bancaires'=>'finance',
+    'factures'=>'finance','banques'=>'finance','livrets-bancaires'=>'finance',
+    'contacts'=>'contacts',
     'stocks'=>'stock','produits'=>'stock','mouvements-stocks'=>'stock','depots'=>'stock','categories-produits'=>'stock',
     'documents'=>'archives','categories-documents'=>'archives',
     'users'=>'systeme',
@@ -399,6 +400,12 @@ foreach ($_domainMap as $_prefix => $_domain) {
                    data-permission="finance.view">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                     Finance
+                </a>
+
+                <a href="{{ route('contacts.index') }}"
+                   class="sidebar-link {{ $_activeDomain === 'contacts' ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Contacts
                 </a>
 
                 <a href="{{ route('stocks.dashboard') }}"

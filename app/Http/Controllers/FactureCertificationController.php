@@ -13,12 +13,19 @@ class FactureCertificationController extends Controller
 {
     public function certifier(Facture $facture, FacturePayloadBuilder $payloadBuilder, SfecClient $client): RedirectResponse
     {
-        if ($facture->type_facture?->value !== 'vente') {
-            return back()->with('error', 'Seules les factures de vente peuvent être certifiées.');
+        if (!in_array($facture->type_facture?->value, ['vente', 'avoir'])) {
+            return back()->with('error', 'Seules les factures de vente et les avoirs peuvent être certifiés.');
         }
 
         if ($facture->statut_certification === StatutCertification::Certifiee) {
             return back()->with('error', 'Cette facture est déjà certifiée.');
+        }
+
+        if ($facture->type_facture?->value === 'avoir') {
+            $facture->loadMissing('factureOrigine');
+            if (!$facture->factureOrigine || $facture->factureOrigine->statut_certification !== StatutCertification::Certifiee) {
+                return back()->with('error', 'Cet avoir doit référencer une facture d\'origine déjà certifiée pour pouvoir être certifié.');
+            }
         }
 
         try {

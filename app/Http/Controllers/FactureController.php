@@ -4,11 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Enums\TypeFacture;
 use App\Enums\StatutFacture;
+use App\Enums\StatutCertification;
 use App\Models\Agence;
 use App\Models\Contact;
+use App\Models\Depot;
 use App\Models\Employee;
 use App\Models\Facture;
 use App\Models\ItemFacture;
+use App\Models\Produit;
+use App\Services\StockMovementService;
 use App\Http\Controllers\Traits\Sortable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -18,6 +22,10 @@ use Illuminate\View\View;
 class FactureController extends Controller
 {
     use Sortable;
+
+    public function __construct(private StockMovementService $stockMovementService)
+    {
+    }
 
     public function index(Request $request): View
     {
@@ -83,15 +91,21 @@ class FactureController extends Controller
         return view('factures.index', compact('factures', 'sort', 'direction', 'types', 'statuts', 'agences', 'stats'));
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
         $types = TypeFacture::cases();
         $statuts = StatutFacture::cases();
         $contacts = Contact::pluck('raison_social', 'id');
         $agences = Agence::pluck('name_agence', 'id');
+        $factures = Facture::where('type_facture', 'vente')->orderByDesc('id')->pluck('numero_facture', 'id');
         $nextNum = $this->nextNumero();
 
-        return view('factures.create', compact('types', 'statuts', 'contacts', 'agences', 'nextNum'));
+        $factureOrigine = null;
+        if ($request->filled('avoir_de')) {
+            $factureOrigine = Facture::find($request->integer('avoir_de'));
+        }
+
+        return view('factures.create', compact('types', 'statuts', 'contacts', 'agences', 'factures', 'nextNum', 'factureOrigine'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -103,6 +117,7 @@ class FactureController extends Controller
             'statut_facture' => ['required', 'string'],
             'raison_social' => ['nullable', 'string', 'max:255'],
             'contact_id' => ['nullable', 'exists:contacts,id'],
+            'facture_origine_id' => ['nullable', 'exists:factures,id'],
             'agence_id' => ['nullable', 'exists:agences,id'],
             'objet' => ['nullable', 'string', 'max:500'],
         ]);
@@ -126,8 +141,9 @@ class FactureController extends Controller
         $statuts = StatutFacture::cases();
         $contacts = Contact::pluck('raison_social', 'id');
         $agences = Agence::pluck('name_agence', 'id');
+        $factures = Facture::where('type_facture', 'vente')->where('id', '!=', $facture->id)->orderByDesc('id')->pluck('numero_facture', 'id');
 
-        return view('factures.edit', compact('facture', 'types', 'statuts', 'contacts', 'agences'));
+        return view('factures.edit', compact('facture', 'types', 'statuts', 'contacts', 'agences', 'factures'));
     }
 
     public function update(Request $request, Facture $facture): RedirectResponse
@@ -139,6 +155,7 @@ class FactureController extends Controller
             'statut_facture' => ['required', 'string'],
             'raison_social' => ['nullable', 'string', 'max:255'],
             'contact_id' => ['nullable', 'exists:contacts,id'],
+            'facture_origine_id' => ['nullable', 'exists:factures,id'],
             'agence_id' => ['nullable', 'exists:agences,id'],
             'objet' => ['nullable', 'string', 'max:500'],
         ]);
@@ -151,6 +168,11 @@ class FactureController extends Controller
 
     public function destroy(Facture $facture): RedirectResponse
     {
+        $facture->load('items');
+        foreach ($facture->items as $item) {
+            $this->stockMovementService->annulerPourArticle($item);
+        }
+
         $facture->delete();
 
         return redirect()->route('factures.index')
@@ -178,8 +200,11 @@ class FactureController extends Controller
         $facture->load(['items', 'agence', 'contact']);
         $types = TypeFacture::cases();
         $statuts = StatutFacture::cases();
+        $produits = Produit::orderBy('nom')->pluck('nom', 'id');
+        $depots = Depot::when($facture->agence_id, fn($q) => $q->where('agence_id', $facture->agence_id))
+            ->orderBy('nom')->pluck('nom', 'id');
 
-        return view('factures.manage', compact('facture', 'types', 'statuts'));
+        return view('factures.manage', compact('facture', 'types', 'statuts', 'produits', 'depots'));
     }
 
     public function storeItem(Request $request, Facture $facture): RedirectResponse
@@ -188,11 +213,24 @@ class FactureController extends Controller
             'description' => ['required', 'string', 'max:255'],
             'quantite' => ['required', 'integer', 'min:1'],
             'prix_unitaire' => ['required', 'numeric', 'min:0'],
+            'type_article' => ['nullable', 'string', 'in:produit,service'],
+            'produit_id' => ['nullable', 'required_if:type_article,produit', 'exists:produits,id'],
+            'depot_id' => ['nullable', 'required_if:type_article,produit', 'exists:depots,id'],
         ]);
 
         $validated['facture_id'] = $facture->id;
         $validated['taux_tva'] = $facture->tva_active ? 18 : 0;
-        ItemFacture::create($validated);
+        $validated['type_article'] = $validated['type_article'] ?? 'service';
+        if ($validated['type_article'] !== 'produit') {
+            $validated['produit_id'] = null;
+            $validated['depot_id'] = null;
+        }
+
+        $item = ItemFacture::create($validated);
+
+        if ($facture->statut_facture?->value !== 'brouillon') {
+            $this->stockMovementService->sortirPourArticle($item);
+        }
 
         return redirect()->route('factures.manage', $facture)
             ->with('success', 'Article ajouté à la facture.');
@@ -201,6 +239,8 @@ class FactureController extends Controller
     public function destroyItem(ItemFacture $itemFacture): RedirectResponse
     {
         $factureId = $itemFacture->facture_id;
+
+        $this->stockMovementService->annulerPourArticle($itemFacture);
         $itemFacture->delete();
 
         return redirect()->route('factures.manage', $factureId)
@@ -213,7 +253,20 @@ class FactureController extends Controller
             'statut_facture' => ['required', 'string'],
         ]);
 
+        if ($validated['statut_facture'] === 'annulee' && $facture->statut_certification === StatutCertification::Certifiee) {
+            return redirect()->route('factures.manage', $facture)->with('error',
+                'Cette facture est certifiée auprès du SFEC : elle ne peut plus être annulée directement. '
+                . 'Créez une facture d\'avoir pour l\'annuler/corriger.'
+            );
+        }
+
+        $quittaitBrouillon = $facture->statut_facture?->value === 'brouillon' && $validated['statut_facture'] !== 'brouillon';
+
         $facture->update($validated);
+
+        if ($quittaitBrouillon) {
+            $this->stockMovementService->sortirPourFacture($facture);
+        }
 
         return redirect()->route('factures.manage', $facture)
             ->with('success', 'Statut mis à jour.');

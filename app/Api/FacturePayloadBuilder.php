@@ -8,7 +8,7 @@ class FacturePayloadBuilder
 {
     public function build(Facture $facture): array
     {
-        $facture->loadMissing(['items', 'contact', 'agence.compagnie']);
+        $facture->loadMissing(['items', 'contact', 'agence.compagnie', 'factureOrigine']);
 
         $items = $facture->items->map(fn($item) => $this->buildItem($item));
 
@@ -34,7 +34,7 @@ class FacturePayloadBuilder
             'invoice_type' => config('sfec.invoice_types.' . $facture->type_facture?->value, config('sfec.invoice_types.vente')),
             'invoice_subject' => $facture->objet,
             'invoice_due_date' => null,
-            'reference_invoice_id' => null,
+            'reference_invoice_id' => $facture->factureOrigine?->numero_facture,
             'sciet' => config('sfec.sciet'),
             'currency' => 'XAF',
             'subtotal' => $subtotal,

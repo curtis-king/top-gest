@@ -20,6 +20,7 @@ class MouvementStock extends Model
         'depot_destination_id',
         'contact_id',
         'facture_id',
+        'item_facture_id',
         'user_id',
     ];
 
@@ -54,6 +55,11 @@ class MouvementStock extends Model
     public function facture(): BelongsTo
     {
         return $this->belongsTo(Facture::class);
+    }
+
+    public function itemFacture(): BelongsTo
+    {
+        return $this->belongsTo(ItemFacture::class);
     }
 
     public function user(): BelongsTo

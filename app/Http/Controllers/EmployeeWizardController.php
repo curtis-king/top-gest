@@ -16,12 +16,17 @@ use App\Enums\TypePiece;
 use App\Enums\TypeContrat;
 use App\Enums\StatusDossier;
 use App\Enums\TypeConge;
+use App\Services\PaieCalculatorService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class EmployeeWizardController extends Controller
 {
+    public function __construct(private PaieCalculatorService $paieCalculator)
+    {
+    }
+
     public function create(): View
     {
         $data = $this->getFormData();
@@ -185,15 +190,13 @@ class EmployeeWizardController extends Controller
         $validated = $request->validate([
             'mois' => ['required', 'string', 'max:20'],
             'annee' => ['required', 'string', 'max:10'],
-            'salaire_base' => ['required', 'numeric', 'min:0'],
-            'total_primes' => ['nullable', 'numeric', 'min:0'],
-            'total_retenus' => ['nullable', 'numeric', 'min:0'],
-            'net_a_payer' => ['required', 'numeric', 'min:0'],
             'status' => ['required', 'string'],
             'date_paiement' => ['nullable', 'date'],
         ]);
 
-        $employee->payements()->create($validated);
+        $montants = $this->paieCalculator->calculer($employee, $validated['mois'], $validated['annee']);
+
+        $employee->payements()->create(array_merge($validated, $montants));
 
         return redirect()->route('employees.wizard.edit', $employee)
             ->with('success', 'Paiement ajouté.');
