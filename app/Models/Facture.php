@@ -17,6 +17,7 @@ class Facture extends Model
         'date_facture',
         'statut_facture',
         'raison_social',
+        'interlocuteur',
         'contact_id',
         'facture_origine_id',
         'agence_id',

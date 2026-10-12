@@ -250,14 +250,15 @@
                 <div class="client-info">
                     <div><strong>Numéro :</strong> {{ $facture->numero_facture }}</div>
                     <div><strong>Date :</strong> {{ $facture->date_facture?->format('d-m-Y') ?? '—' }}</div>
-                    <div><strong>Client :</strong> {{ $clientNom }}</div>
                     @if($contact?->adresse)
                         <div><strong>BP :</strong> {{ $contact->adresse }}</div>
                     @endif
                     @if($contact?->telephone)
                         <div><strong>Tel :</strong> {{ $contact->telephone }}</div>
                     @endif
-                    <div><strong>Interlocuteur :</strong> {{ $clientNom }}</div>
+                    @if($facture->interlocuteur)
+                        <div><strong>Interlocuteur :</strong> {{ $facture->interlocuteur }}</div>
+                    @endif
                 </div>
             </td>
             <td style="width:45%;" class="logo-cell">
