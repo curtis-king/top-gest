@@ -1,0 +1,24 @@
+---
+# Tâches exécutées par cPanel (Git Version Control → « Deploy HEAD Commit ») sur la branche
+# production construite par GitHub Actions. Voir DEPLOIEMENT.md.
+#
+# - Le dépôt cloné par cPanel sert de source ; l'application tourne dans $HOME/top-gest,
+#   dont le dossier public/ est la racine du domaine.
+# - .env et storage/ (logos, sessions, journaux) ne sont jamais écrasés.
+deployment:
+  tasks:
+    - export SOURCE=$PWD
+    - export DEPLOYPATH=$HOME/top-gest
+    - export PHP=/opt/cpanel/ea-php83/root/usr/bin/php
+    - test -x $PHP || export PHP=/usr/local/bin/php
+    - mkdir -p $DEPLOYPATH
+    - test -f $DEPLOYPATH/.env || { echo "ERREUR - fichier $DEPLOYPATH/.env absent, le creer avant de deployer (voir DEPLOIEMENT.md)"; exit 1; }
+    - test -f $DEPLOYPATH/artisan && (cd $DEPLOYPATH && $PHP artisan down --retry=30) || true
+    - /bin/rsync -a --delete --exclude=/.git --exclude=/.env --exclude=/storage --exclude=/public/storage $SOURCE/ $DEPLOYPATH/
+    - /bin/rsync -a --ignore-existing $SOURCE/storage/ $DEPLOYPATH/storage/
+    - mkdir -p $DEPLOYPATH/storage/fonts $DEPLOYPATH/storage/app/public $DEPLOYPATH/storage/app/private $DEPLOYPATH/storage/framework/cache/data $DEPLOYPATH/storage/framework/sessions $DEPLOYPATH/storage/framework/views $DEPLOYPATH/storage/logs
+    - ln -sfn $DEPLOYPATH/storage/app/public $DEPLOYPATH/public/storage
+    - cd $DEPLOYPATH && $PHP artisan migrate --force
+    - cd $DEPLOYPATH && $PHP artisan optimize:clear
+    - cd $DEPLOYPATH && $PHP artisan optimize
+    - cd $DEPLOYPATH && $PHP artisan up

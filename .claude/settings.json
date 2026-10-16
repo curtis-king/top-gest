@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -v \"^$\")",
+      "Bash(awk '{print $3}')",
+      "PowerShell(cd d:\\\\Projets\\\\top-gest; php artisan route:list 2>&1 | Select-String \"GET\" | ForEach-Object { \\($_ -split '\\\\s+'\\)[3] } | Sort-Object)",
+      "PowerShell(cd d:\\\\Projets\\\\top-gest; php artisan route:list 2>&1 | Select-String \"\\\\bindex\\\\b\" | ForEach-Object { $_.ToString\\(\\).Trim\\(\\) })",
+      "Bash(xargs grep -l \"class.*Expense\\\\|class.*Depense\\\\|class.*Charge\\\\|class.*Compte\\\\|class.*Journal\\\\|class.*Ecriture\")"
+    ]
+  }
+}
