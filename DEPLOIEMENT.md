@@ -1,6 +1,76 @@
 # Déploiement sur un hébergement mutualisé cPanel
 
-Ce guide met MyGest en ligne sur un hébergement cPanel, puis explique comment publier les mises à jour.
+## 0. Mettre à jour l'installation existante (sous-domaine cloné depuis GitHub)
+
+C'est le cas actuel : le dossier du sous-domaine est un clone Git de la branche `main`, avec `vendor/` installé sur le serveur.
+
+**Ce que contient cette mise à jour côté serveur :**
+- **Aucune nouvelle dépendance.** `composer.json` et `composer.lock` n'ont pas changé, le `vendor/` en place reste valable.
+- **Aucune nouvelle variable obligatoire** dans `.env`.
+- **4 migrations** :
+  - interlocuteur des factures ;
+  - données SFEC des clients ;
+  - paiements et historique des factures, avec le compte 443400 ;
+  - lien entre paiements et livret bancaire.
+
+### Étapes
+
+1. **Sauvegarder** :
+   - cPanel → phpMyAdmin → base de l'application → *Exporter* ;
+   - garder une copie du fichier `.env` du sous-domaine.
+2. **Récupérer le code** : cPanel → **Git™ Version Control** → dépôt du sous-domaine → *Gérer* → onglet *Pull or Deploy* → **Update from Remote** (branche `main`).
+   > Ne cliquez **pas** sur *Deploy HEAD Commit* : ce bouton exécute `.cpanel.yml`, prévu pour une installation séparée dans `~/top-gest`. Sans `~/top-gest/.env`, il s'arrêterait de toute façon sans rien copier.
+3. **Appliquer les migrations et vider les caches.** Dans le Terminal cPanel, depuis le dossier du sous-domaine :
+   ```bash
+   cd ~/chemin/du/sous-domaine        # le dossier qui contient « artisan »
+   php -v                             # doit afficher 8.3 ou plus
+   php artisan down
+   php artisan migrate --force
+   php artisan optimize:clear
+   php artisan optimize
+   php artisan up
+   ```
+   Si `php -v` affiche une version inférieure à 8.3, utilisez le chemin complet : `/opt/cpanel/ea-php83/root/usr/bin/php artisan …`.
+4. **Lancer le diagnostic** (lecture seule, ne modifie rien) :
+   ```bash
+   php artisan mygest:diagnostic
+   php artisan sfec:verifier-contacts
+   ```
+   Le diagnostic liste ce que les nouvelles règles vont changer pour vos utilisateurs :
+   - comptes sans rôle ;
+   - comptes non-DG sans agence ;
+   - factures sans agence ;
+   - factures certifiées restées en brouillon ;
+   - clients incomplets pour le SFEC.
+5. **Vérifier** :
+   - connexion ;
+   - une facture et son PDF ;
+   - les nouvelles pages Finance → Encaissements et Créances ;
+   - un rapport PDF.
+
+**En cas de problème :**
+- rétablir le code avec `git reset --hard <ancien commit>` dans le dossier du sous-domaine, puis réimporter la sauvegarde de la base ;
+- `git log --oneline -3` indique le commit en place avant la mise à jour : notez-le à l'étape 1.
+
+### Ce qui change pour les utilisateurs
+- **Droits appliqués finement :**
+  - un rôle « assistant » ne peut plus supprimer ;
+  - le rôle DG ne peut plus créer de comptes ;
+  - les Contacts demandent un rôle métier.
+- **Cloisonnement par agence :** un compte non-DG ne voit que les données de son agence. Sans agence, il ne voit plus rien.
+- **Factures :**
+  - le statut de paiement découle des paiements enregistrés ;
+  - une facture certifiée est figée ;
+  - les avoirs se créent depuis « Nouvel avoir ».
+- **Clients :** les champs SFEC (type, NIU…) sont exigés à l'enregistrement d'une fiche client.
+- **Connexion :**
+  - 5 tentatives par minute ;
+  - les nouveaux mots de passe font 10 caractères minimum, avec majuscule, minuscule et chiffre ;
+  - l'inscription publique est fermée.
+
+---
+
+*Les sections suivantes concernent une **installation neuve** en dehors de `public_html`, avec la branche `production` construite par GitHub Actions.*
 
 ## Principe
 
