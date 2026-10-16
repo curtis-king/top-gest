@@ -80,20 +80,35 @@
     <div class="mg-card">
         <div class="mg-section-title">Statut & Total</div>
 
-        <form method="POST" action="{{ route('factures.statut', $facture) }}" style="display:flex;align-items:flex-end;gap:10px;margin-bottom:16px;">
-            @csrf
-            <div style="flex:1;">
-                <div class="mg-label" style="margin-bottom:4px;">Statut</div>
-                <select name="statut_facture" class="mg-select">
-                    @foreach($statuts as $s)
-                        <option value="{{ $s->value }}" {{ $facture->statut_facture?->value == $s->value ? 'selected' : '' }}>{{ $s->value }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <button type="submit" class="mg-btn" style="background:#2563eb;color:#fff;white-space:nowrap;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">Mettre à jour</button>
-        </form>
+        <div style="margin-bottom:16px;">
+            <div class="mg-label" style="margin-bottom:6px;">Statut</div>
+            <span class="badge" style="background:{{ $sc }}22;color:{{ $sc }};">{{ $sv }}</span>
+            @if($facture->estActive() && $tv !== 'proforma')
+                <span style="font-size:11px;color:rgba(255,255,255,.35);margin-left:6px;">mis à jour selon les paiements</span>
+            @endif
+
+            @can('finance.factures.valider')
+                @if($transitions)
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+                        @foreach($transitions as $cible => $libelleAction)
+                            <form method="POST" action="{{ route('factures.statut', $facture) }}"
+                                  onsubmit="return confirm('{{ $libelleAction }} ?{{ $cible === 'impayee' ? ' Le stock sera mis à jour.' : ($facture->estActive() ? ' Les mouvements de stock seront contre-passés.' : '') }}');">
+                                @csrf
+                                <input type="hidden" name="statut_facture" value="{{ $cible }}">
+                                <button type="submit" class="mg-btn" style="{{ $cible === 'impayee' ? 'background:#2563eb;color:#fff;' : ($cible === 'annulee' ? 'background:rgba(248,113,113,.12);color:#f87171;' : 'background:rgba(255,255,255,.06);color:#f1f5f9;') }}">{{ $libelleAction }}</button>
+                            </form>
+                        @endforeach
+                    </div>
+                @elseif($facture->estActive() && $facture->estCertifiee())
+                    <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:8px;">Certifiée : seule une facture d'avoir peut l'annuler ou la corriger.</div>
+                @elseif($facture->estActive())
+                    <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:8px;">Des paiements sont enregistrés : supprimez-les pour remettre la facture en brouillon ou l'annuler.</div>
+                @endif
+            @endcan
+        </div>
 
         <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+            @unless($facture->estCertifiee())
             <form method="POST" action="{{ route('factures.tva.toggle', $facture) }}">
                 @csrf
                 <button type="submit" class="mg-btn" style="background:{{ $facture->tva_active ? 'rgba(74,222,128,.12)' : 'rgba(255,255,255,.06)' }};color:{{ $facture->tva_active ? '#4ade80' : 'rgba(255,255,255,.5)' }};">
@@ -106,6 +121,7 @@
                     Centimes additionnels 5% {{ $facture->centimes_additionnels_actif ? '✓' : '—' }}
                 </button>
             </form>
+            @endunless
         </div>
 
         <div style="padding-top:12px;border-top:1px solid rgba(255,255,255,.04);">
@@ -134,7 +150,7 @@
         @php
             $ecritureLiee = \App\Models\EcritureComptable::where('source_type', 'facture')->where('source_id', $facture->id)->first();
         @endphp
-        @if(in_array($sv, ['payee', 'partielle']) && in_array($tv, ['vente', 'achat']))
+        @if($facture->estActive() && in_array($tv, ['vente', 'achat', 'avoir']))
             <div style="padding-top:12px;margin-top:12px;border-top:1px solid rgba(255,255,255,.04);">
                 @if($ecritureLiee)
                     <a href="{{ route('ecritures-comptables.show', $ecritureLiee) }}" style="color:#60a5fa;text-decoration:none;font-size:13px;font-weight:500;">Voir l'écriture {{ $ecritureLiee->numero_ecriture }} &rarr;</a>
@@ -191,13 +207,34 @@
                 @endif
             </div>
             @if($tv === 'vente')
+                @php $avoirEmis = $facture->avoirEmis(); @endphp
                 <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06);">
-                    <a href="{{ route('factures.create', ['avoir_de' => $facture->id]) }}" class="mg-btn" style="background:rgba(255,255,255,.06);color:#f1f5f9;text-decoration:none;display:inline-block;">Créer un avoir pour cette facture</a>
+                    @if($avoirEmis)
+                        <div class="mg-label">{{ $facture->estAnnuleeParAvoir() ? 'Annulée par l\'avoir' : 'Corrigée par l\'avoir' }}</div>
+                        <div class="mg-value">
+                            <a href="{{ route('factures.manage', $avoirEmis) }}" style="color:#f87171;text-decoration:none;">{{ $avoirEmis->numero_facture }}</a>
+                            <span style="font-size:12px;color:rgba(255,255,255,.45);">— {{ number_format($avoirEmis->total_ttc, 0, ',', ' ') }} FCFA TTC{{ $avoirEmis->estCertifiee() ? ', certifié' : ', non certifié' }}</span>
+                        </div>
+                    @else
+                        <a href="{{ route('factures.avoirs.preparer', $facture) }}" class="mg-btn" style="background:rgba(255,255,255,.06);color:#f1f5f9;text-decoration:none;display:inline-block;">Créer un avoir pour cette facture</a>
+                    @endif
                 </div>
             @endif
         @else
             @if($origineNonCertifiee)
                 <div style="font-size:12px;color:#f59e0b;margin-bottom:10px;">La facture d'origine doit d'abord être certifiée avant de pouvoir certifier cet avoir.</div>
+            @endif
+            @php $manquesClient = $facture->contact?->manquesSfec() ?? []; @endphp
+            @if($manquesClient)
+                <div style="font-size:12px;color:#f59e0b;margin-bottom:10px;">
+                    Fiche client incomplète pour le SFEC :
+                    <ul style="margin:6px 0;padding-left:18px;">
+                        @foreach($manquesClient as $manque)
+                            <li>{{ $manque }}</li>
+                        @endforeach
+                    </ul>
+                    <a href="{{ route('contacts.edit', $facture->contact) }}" style="color:#60a5fa;text-decoration:none;">Compléter la fiche de {{ $facture->contact->raison_social ?: $facture->contact->nom_complet }} &rarr;</a>
+                </div>
             @endif
             <form method="POST" action="{{ route('factures.certifier', $facture) }}">
                 @csrf
@@ -207,11 +244,136 @@
     </div>
     @endif
 
+    {{-- PAIEMENTS --}}
+    @if($tv !== 'proforma' && ($facture->estActive() || $facture->paiements->isNotEmpty()))
+    @php
+        $paye = (float) $facture->paiements->sum('montant');
+        $du = $facture->montantDu();
+        $reste = $facture->resteAPayer();
+        $avoirsImputes = $tv === 'vente' ? $facture->montantAvoirsValides() : 0;
+        $libellePaiement = ['achat' => 'Règlements au fournisseur', 'avoir' => 'Remboursements au client'][$tv] ?? 'Paiements reçus';
+    @endphp
+    <div class="mg-card mg-card-full">
+        <div class="mg-section-title">{{ $libellePaiement }}</div>
+
+        <div style="display:flex;gap:28px;flex-wrap:wrap;margin-bottom:16px;">
+            <div><div class="mg-label">Total TTC</div><div class="mg-value">{{ number_format($facture->total_ttc, 0, ',', ' ') }} FCFA</div></div>
+            @if($avoirsImputes > 0)
+                <div><div class="mg-label">Avoirs imputés</div><div class="mg-value" style="color:#f87171;">− {{ number_format($avoirsImputes, 0, ',', ' ') }} FCFA</div></div>
+            @endif
+            @if($tv === 'avoir')
+                <div><div class="mg-label">À rembourser</div><div class="mg-value">{{ number_format($du, 0, ',', ' ') }} FCFA</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,.35);">trop-perçu sur la facture d'origine</div></div>
+            @endif
+            <div><div class="mg-label">Déjà réglé</div><div class="mg-value" style="color:#4ade80;">{{ number_format($paye, 0, ',', ' ') }} FCFA</div></div>
+            <div><div class="mg-label">Reste à régler</div><div class="mg-value" style="color:{{ $reste > 0 ? '#f59e0b' : '#4ade80' }};font-weight:600;">{{ number_format($reste, 0, ',', ' ') }} FCFA</div></div>
+        </div>
+
+        @if($facture->paiements->isNotEmpty())
+            <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;">
+                <thead>
+                    <tr style="color:rgba(255,255,255,.4);font-size:11px;text-transform:uppercase;text-align:left;">
+                        <th style="padding:6px 8px;">Date</th><th style="padding:6px 8px;">Moyen</th><th style="padding:6px 8px;">Référence</th>
+                        <th style="padding:6px 8px;">Saisi par</th><th style="padding:6px 8px;text-align:right;">Montant</th>
+                        <th style="padding:6px 8px;">Comptabilité</th><th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($facture->paiements as $p)
+                        <tr style="border-top:1px solid rgba(255,255,255,.05);">
+                            <td style="padding:8px;color:rgba(255,255,255,.75);">{{ $p->date_paiement?->format('d/m/Y') }}</td>
+                            <td style="padding:8px;color:rgba(255,255,255,.65);">
+                                {{ $p->mode_paiement ? str_replace('_', ' ', $p->mode_paiement) : '—' }}
+                                @if($p->banque) <div style="font-size:11px;color:rgba(255,255,255,.35);">{{ $p->banque->nom }}@if($p->livret_bancaire_id) · livret ✓@endif</div> @endif
+                            </td>
+                            <td style="padding:8px;color:rgba(255,255,255,.65);" title="{{ $p->note }}">{{ $p->reference ?: '—' }}</td>
+                            <td style="padding:8px;color:rgba(255,255,255,.45);">{{ $p->user?->name ?? '—' }}</td>
+                            <td style="padding:8px;text-align:right;color:#4ade80;font-weight:600;">{{ number_format($p->montant, 0, ',', ' ') }}</td>
+                            <td style="padding:8px;">
+                                @php $ecr = $p->ecriture(); @endphp
+                                @if($ecr)
+                                    <a href="{{ route('ecritures-comptables.show', $ecr) }}" style="color:#60a5fa;text-decoration:none;font-size:12px;">{{ $ecr->numero_ecriture }}</a>
+                                @else
+                                    <a href="{{ route('ecritures-comptables.create', ['source_type' => 'paiement_facture', 'source_id' => $p->id]) }}" style="color:#60a5fa;text-decoration:none;font-size:12px;">Comptabiliser</a>
+                                @endif
+                            </td>
+                            <td style="padding:8px;text-align:center;">
+                                @can('finance.delete')
+                                    <form method="POST" action="{{ route('factures.paiements.destroy', $p) }}" onsubmit="return confirm('Supprimer ce paiement ? Le statut de la facture sera recalculé.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" title="Supprimer" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:14px;">&times;</button>
+                                    </form>
+                                @endcan
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+
+        @if($facture->accepteLesPaiements() && $reste > 0)
+            @can('finance.create')
+                <form method="POST" action="{{ route('factures.paiements.store', $facture) }}">
+                    @csrf
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;">
+                        <div>
+                            <label class="mg-label" style="display:block;margin-bottom:4px;">Date</label>
+                            <input type="date" name="date_paiement" value="{{ old('date_paiement', now()->format('Y-m-d')) }}" max="{{ now()->format('Y-m-d') }}" required class="mg-input" style="color-scheme:dark;">
+                            @error('date_paiement') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
+                        </div>
+                        <div>
+                            <label class="mg-label" style="display:block;margin-bottom:4px;">Montant</label>
+                            <input type="number" name="montant" value="{{ old('montant', $reste) }}" min="1" max="{{ $reste }}" step="any" required class="mg-input">
+                            @error('montant') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
+                        </div>
+                        <div>
+                            <label class="mg-label" style="display:block;margin-bottom:4px;">Moyen</label>
+                            <select name="mode_paiement" required class="mg-select">
+                                @foreach(['especes' => 'Espèces', 'virement' => 'Virement', 'mobile_money' => 'Mobile money', 'cheque' => 'Chèque', 'carte' => 'Carte', 'credit' => 'Crédit'] as $cle => $libelle)
+                                    <option value="{{ $cle }}" {{ old('mode_paiement', $facture->mode_paiement) === $cle ? 'selected' : '' }}>{{ $libelle }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mg-label" style="display:block;margin-bottom:4px;">Banque</label>
+                            <select name="banque_id" data-required-if="mode_paiement:virement,cheque,carte" class="mg-select">
+                                <option value="">— Aucune —</option>
+                                @foreach($banques as $id => $nom)
+                                    <option value="{{ $id }}" {{ old('banque_id') == $id ? 'selected' : '' }}>{{ $nom }}</option>
+                                @endforeach
+                            </select>
+                            @error('banque_id') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
+                        </div>
+                        <div>
+                            <label class="mg-label" style="display:block;margin-bottom:4px;">Référence</label>
+                            <input type="text" name="reference" value="{{ old('reference') }}" placeholder="N° de chèque, transaction…" class="mg-input">
+                        </div>
+                        <div>
+                            <button type="submit" class="mg-btn" style="background:#16a34a;color:#fff;width:100%;padding:9px 16px;">Enregistrer le paiement</button>
+                        </div>
+                    </div>
+                </form>
+            @endcan
+        @elseif($facture->estActive() && $reste <= 0)
+            <div style="font-size:12px;color:#4ade80;">
+                {{ match(true) {
+                    $tv === 'avoir' && $du <= 0 => 'Rien à rembourser : l\'avoir s\'impute sur ce qui restait dû.',
+                    $tv === 'vente' && $paye <= 0 && $avoirsImputes > 0 => 'Soldée par avoir.',
+                    default => 'Entièrement réglée.',
+                } }}
+            </div>
+        @endif
+    </div>
+    @endif
+
     {{-- ITEMS --}}
     <div class="mg-card mg-card-full">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.06);">
             <span class="mg-section-title" style="margin:0;padding:0;border:none;">Articles ({{ $facture->items->count() }})</span>
+            @unless($facture->estCertifiee())
             <button onclick="document.getElementById('modal-item').style.display='flex'" class="mg-btn" style="background:#2563eb;color:#fff;">+ Ajouter un article</button>
+            @endunless
         </div>
 
         {{-- Modal --}}
@@ -233,7 +395,7 @@
                     <div id="bloc-item-produit" style="display:none;margin-bottom:16px;padding:12px;background:rgba(255,255,255,.03);border-radius:10px;">
                         <div style="margin-bottom:12px;">
                             <div class="mg-label" style="margin-bottom:4px;">Produit</div>
-                            <select name="produit_id" id="item-produit-id" class="mg-select" onchange="const opt=this.options[this.selectedIndex]; if(opt.value){ document.querySelector('[name=description]').value = opt.text; }">
+                            <select name="produit_id" data-required-if="type_article:produit" id="item-produit-id" class="mg-select" onchange="const opt=this.options[this.selectedIndex]; if(opt.value){ document.querySelector('[name=description]').value = opt.text; }">
                                 <option value="">Sélectionner un produit</option>
                                 @foreach($produits as $id => $nom)
                                     <option value="{{ $id }}">{{ $nom }}</option>
@@ -242,7 +404,7 @@
                         </div>
                         <div>
                             <div class="mg-label" style="margin-bottom:4px;">Dépôt (sortie de stock)</div>
-                            <select name="depot_id" class="mg-select">
+                            <select name="depot_id" data-required-if="type_article:produit" class="mg-select">
                                 <option value="">Sélectionner un dépôt</option>
                                 @foreach($depots as $id => $nom)
                                     <option value="{{ $id }}">{{ $nom }}</option>
@@ -301,11 +463,13 @@
                             <td style="padding:12px 8px;text-align:right;color:rgba(255,255,255,.65);">{{ number_format($item->prix_unitaire, 0, ',', ' ') }}</td>
                             <td style="padding:12px 8px;text-align:right;color:#4ade80;font-weight:600;">{{ number_format($st, 0, ',', ' ') }}</td>
                             <td style="padding:12px 8px;text-align:center;">
+                                @unless($facture->estCertifiee())
                                 <form method="POST" action="{{ route('factures.items.destroy', $item) }}" style="display:inline;" onsubmit="return confirm('Supprimer cet article ?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" style="background:none;border:none;color:#f87171;cursor:pointer;padding:2px 6px;font-size:14px;" title="Supprimer">&times;</button>
                                 </form>
+                                @endunless
                             </td>
                         </tr>
                     @empty
@@ -327,15 +491,37 @@
         </div>
     </div>
 
+
+    {{-- HISTORIQUE --}}
+    <div class="mg-card mg-card-full">
+        <div class="mg-section-title">Historique</div>
+        @forelse($facture->historique as $h)
+            <div style="display:flex;gap:12px;padding:7px 0;border-top:1px solid rgba(255,255,255,.04);font-size:12px;">
+                <span style="color:rgba(255,255,255,.35);white-space:nowrap;min-width:120px;">{{ $h->created_at?->format('d/m/Y H:i') }}</span>
+                <span style="color:rgba(255,255,255,.75);flex:1;">
+                    {{ $h->details }}
+                    @if($h->ancien_statut || $h->nouveau_statut)
+                        <span style="color:rgba(255,255,255,.4);">({{ $h->ancien_statut ?? '—' }} → {{ $h->nouveau_statut ?? '—' }})</span>
+                    @endif
+                </span>
+                <span style="color:rgba(255,255,255,.45);white-space:nowrap;">{{ $h->user?->name ?? 'Système' }}</span>
+            </div>
+        @empty
+            <div style="font-size:12px;color:rgba(255,255,255,.35);">Aucun événement enregistré (facture antérieure à l'historique).</div>
+        @endforelse
+    </div>
+
 </div>
 
 <div style="margin-top:20px;display:flex;gap:12px;">
     <a href="{{ route('factures.pdf', $facture) }}" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">Aperçu / Imprimer</a>
+    @unless($facture->estCertifiee())
     <a href="{{ route('factures.edit', $facture) }}" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#f1f5f9;">Modifier</a>
     <form method="POST" action="{{ route('factures.destroy', $facture) }}" style="display:inline;" onsubmit="return confirm('Confirmer la suppression ?');">
         @csrf
         @method('DELETE')
         <button type="submit" class="btn-outline" style="border-color:rgba(248,113,113,.2);color:#f87171;cursor:pointer;font-family:inherit;">Supprimer</button>
     </form>
+    @endunless
 </div>
 @endsection

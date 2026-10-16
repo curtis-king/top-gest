@@ -75,9 +75,62 @@
         </div>
     </div>
 
+    <div class="det-card">
+        @php $manques = $contact->manquesSfec(); @endphp
+        <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.06);">Facturation SFEC</div>
+
+        <div style="margin-bottom:14px;">
+            @if($manques)
+                <span class="badge" style="background:#f59e0b22;color:#f59e0b;">Incomplet pour la certification</span>
+                <ul style="margin:10px 0 0;padding-left:18px;font-size:12px;color:#f59e0b;">
+                    @foreach($manques as $manque)
+                        <li>{{ $manque }}</li>
+                    @endforeach
+                </ul>
+            @else
+                <span class="badge" style="background:#4ade8022;color:#4ade80;">Prêt pour la certification</span>
+            @endif
+        </div>
+
+        <div style="margin-bottom:14px;">
+            <div class="det-label">Type de client</div>
+            <div class="det-value">
+                {{ config('sfec.recipient_labels.'.$contact->typeSfec(), $contact->typeSfec()) }}
+                @unless($contact->type_client_sfec)
+                    <span style="font-size:11px;color:rgba(255,255,255,.35);">(déduit)</span>
+                @endunless
+            </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+            <div class="det-label">NIU</div>
+            <div class="det-value">{{ $contact->niu ?? '—' }}</div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+            <div class="det-label">RCCM</div>
+            <div class="det-value">{{ $contact->rccm ?? '—' }}</div>
+        </div>
+
+        <div>
+            <div class="det-label">Assujetti à la TVA</div>
+            <div class="det-value">
+                {{ $contact->estAssujettiTva() ? 'Oui' : 'Non' }}
+                @if(is_null($contact->assujetti_tva))
+                    <span style="font-size:11px;color:rgba(255,255,255,.35);">(selon le type)</span>
+                @endif
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <div style="margin-top:20px;display:flex;gap:12px;">
+    @if($contact->type_contact?->value === 'client')
+        @can('finance.view')
+            <a href="{{ route('releves.pdf', $contact) }}" target="_blank" class="btn-outline" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">↓ Relevé de compte (PDF)</a>
+        @endcan
+    @endif
     <a href="{{ route('contacts.edit', $contact) }}" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">Modifier</a>
     <form method="POST" action="{{ route('contacts.destroy', $contact) }}" style="display:inline;" onsubmit="return confirm('Confirmer la suppression ?');">
         @csrf

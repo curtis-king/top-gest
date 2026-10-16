@@ -2,11 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\CloisonneParAgence;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AffectationTache extends Model
 {
+    use CloisonneParAgence;
+
+    protected string $agenceParent = 'tache';
+
+    protected array $relationsCloisonnees = ['employee'];
+
     protected $table = 'affectation_taches';
 
     protected $fillable = [

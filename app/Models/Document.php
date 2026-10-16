@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\CloisonneParAgence;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Document extends Model
 {
+    use CloisonneParAgence;
+
     protected $fillable = [
         'nom',
         'description',

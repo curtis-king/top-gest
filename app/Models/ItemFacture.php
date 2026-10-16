@@ -2,11 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\CloisonneParAgence;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ItemFacture extends Model
 {
+    use CloisonneParAgence;
+
+    protected string $agenceParent = 'facture';
+
+    protected array $relationsCloisonnees = ['depot'];
+
     protected $table = 'item_factures';
 
     protected $fillable = [

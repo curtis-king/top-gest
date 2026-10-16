@@ -8,7 +8,10 @@
 <div style="margin-bottom:20px;">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
         <h2 style="font-size:18px;font-weight:600;color:#f1f5f9;">Liste des écritures</h2>
-        <a href="{{ route('ecritures-comptables.create') }}" class="btn-primary" style="text-decoration:none;">+ Nouvelle écriture</a>
+        <div style="display:flex;gap:8px;">
+            <a href="{{ route('comptabilite.journal.pdf', array_filter(['date_debut' => request('date_debut'), 'date_fin' => request('date_fin'), 'journal_comptable_id' => request('journal_comptable_id')])) }}" target="_blank" class="btn-outline" style="text-decoration:none;">↓ Journal (PDF)</a>
+            <a href="{{ route('ecritures-comptables.create') }}" class="btn-primary" style="text-decoration:none;">+ Nouvelle écriture</a>
+        </div>
     </div>
 
     @if(session('success'))

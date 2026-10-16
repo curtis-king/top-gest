@@ -15,13 +15,13 @@
 
             <div style="margin-bottom:18px;">
                 <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">Code</label>
-                <input type="text" name="code" value="{{ old('code', $journalComptable->code) }}" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                <input type="text" name="code" required value="{{ old('code', $journalComptable->code) }}" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
                 @error('code') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
             </div>
 
             <div style="margin-bottom:18px;">
                 <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">Libellé</label>
-                <input type="text" name="libelle" value="{{ old('libelle', $journalComptable->libelle) }}" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                <input type="text" name="libelle" required value="{{ old('libelle', $journalComptable->libelle) }}" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
                 @error('libelle') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
             </div>
 

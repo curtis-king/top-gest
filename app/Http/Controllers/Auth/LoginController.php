@@ -13,9 +13,7 @@ class LoginController extends Controller
 {
     public function showLoginForm(): View|RedirectResponse
     {
-        $adminExists = User::where('role', 'admin')->exists();
-
-        if (!$adminExists) {
+        if (!User::exists()) {
             return redirect()->route('register');
         }
 

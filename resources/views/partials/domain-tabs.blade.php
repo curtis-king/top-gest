@@ -6,7 +6,7 @@ $domainPrefixes = [
     'rh'      => ['employees','dossiers-employees','conges','retenus','primes',
                   'payements-employees','compagnies','agences','fonctions'],
     'projets' => ['projects','taches-projects','affectation-taches'],
-    'finance' => ['factures','banques','livrets-bancaires','depenses','categories-depenses',
+    'finance' => ['factures','encaissements','creances','banques','livrets-bancaires','depenses','categories-depenses',
                   'comptes-comptables','journaux-comptables','ecritures-comptables','comptabilite'],
     'contacts'=> ['contacts'],
     'stock'   => ['stocks','produits','mouvements-stocks','depots','categories-produits'],
@@ -41,6 +41,8 @@ $tabs = [
     ],
     'finance' => [
         ['Factures',    'factures.index',              'factures'],
+        ['Encaissements', 'encaissements.index',      'encaissements'],
+        ['Créances',    'creances.index',              'creances'],
         ['Banques',     'banques.index',               'banques'],
         ['Livrets',     'livrets-bancaires.index',      'livrets-bancaires'],
         ['Dépenses',    'depenses.index',               'depenses'],

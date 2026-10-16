@@ -464,6 +464,12 @@ foreach ($_domainMap as $_prefix => $_domain) {
 
             @include('partials.domain-tabs')
 
+            @if($errors->any())
+                <div class="alerte-formulaire" role="alert">
+                    ⚠ Le formulaire n'a pas été enregistré : {{ $errors->count() === 1 ? '1 champ est à corriger' : $errors->count().' champs sont à corriger' }} (signalés en rouge ci-dessous).
+                </div>
+            @endif
+
             <section class="dashboard-grid">
                 @yield('content')
             </section>
@@ -499,6 +505,7 @@ foreach ($_domainMap as $_prefix => $_domain) {
         }
     </style>
 
+    @include('partials.champs-obligatoires')
     @stack('scripts')
 
     <script>

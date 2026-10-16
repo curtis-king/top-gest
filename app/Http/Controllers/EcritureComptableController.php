@@ -12,6 +12,7 @@ use App\Models\EcritureComptable;
 use App\Models\Employee;
 use App\Models\Facture;
 use App\Models\JournalComptable;
+use App\Models\PaiementFacture;
 use App\Models\LivretBancaire;
 use App\Models\PayementEmployee;
 use Illuminate\Http\RedirectResponse;
@@ -77,6 +78,13 @@ class EcritureComptableController extends Controller
         if ($request->filled('source_type') && $request->filled('source_id')) {
             $sourceType = $request->string('source_type')->toString();
             $sourceId = (int) $request->input('source_id');
+
+            // Ligne de livret née d'un paiement de facture : c'est le paiement qu'on comptabilise
+            // (banque contre client/fournisseur), pour ne pas enregistrer deux fois le même encaissement.
+            if ($sourceType === 'livret_bancaire'
+                && ($paiement = PaiementFacture::where('livret_bancaire_id', $sourceId)->first())) {
+                return redirect()->route('ecritures-comptables.create', ['source_type' => 'paiement_facture', 'source_id' => $paiement->id]);
+            }
 
             $existing = EcritureComptable::dejaGenereePour($sourceType, $sourceId);
             if ($existing) {
@@ -266,7 +274,7 @@ class EcritureComptableController extends Controller
     private function nextNumero(JournalComptable $journal): string
     {
         $year = now()->year;
-        $count = EcritureComptable::where('journal_comptable_id', $journal->id)
+        $count = EcritureComptable::withoutGlobalScope('agence')->where('journal_comptable_id', $journal->id)
             ->whereYear('date_ecriture', $year)
             ->count();
 
@@ -285,51 +293,76 @@ class EcritureComptableController extends Controller
             'payement_employee' => $this->prefillFromPayementEmployee($id),
             'livret_bancaire' => $this->prefillFromLivretBancaire($id),
             'depense' => $this->prefillFromDepense($id),
+            'paiement_facture' => $this->prefillFromPaiementFacture($id),
             default => null,
         };
     }
 
+    /**
+     * Écriture TTC proposée depuis une facture validée :
+     *   vente : 411 (TTC) au débit / 70x (HT), 445 (TVA), 4434 (centimes) au crédit
+     *   avoir : l'inverse de la vente
+     *   achat : 601 (HT), 445 (TVA récupérable), 4434 (centimes) au débit / 401 (TTC) au crédit
+     */
     private function prefillFromFacture(int $id): ?array
     {
-        $facture = Facture::with(['items', 'contact'])->find($id);
-        if (!$facture) {
+        $facture = Facture::with(['items', 'contact', 'factureOrigine'])->find($id);
+        $type = $facture?->type_facture?->value;
+        if (!in_array($type, ['vente', 'avoir', 'achat'], true)) {
             return null;
         }
 
-        $total = $facture->total;
-        $typeValue = $facture->type_facture?->value;
+        $ht = round($facture->total);
+        $tva = round($facture->montant_tva);
+        $centimes = round($facture->montant_centimes_additionnels);
+        $ttc = $ht + $tva + $centimes;
 
-        if ($typeValue === 'vente') {
-            $compteContrepartie = $this->compteId('701000');
-            $compteTiers = $this->compteId('411000');
-            $journalCode = 'VE';
-        } elseif ($typeValue === 'achat') {
-            $compteContrepartie = $this->compteId('601000');
-            $compteTiers = $this->compteId('401000');
-            $journalCode = 'AC';
-        } else {
-            return null;
-        }
+        $libelle = match ($type) {
+            'avoir' => "Avoir {$facture->numero_facture}" . ($facture->factureOrigine ? " sur facture {$facture->factureOrigine->numero_facture}" : ''),
+            default => "Facture {$facture->numero_facture}",
+        };
 
-        $lignes = $typeValue === 'vente'
-            ? [
-                ['compte_comptable_id' => $compteTiers, 'contact_id' => $facture->contact_id, 'libelle' => "Facture {$facture->numero_facture}", 'debit' => $total, 'credit' => 0],
-                ['compte_comptable_id' => $compteContrepartie, 'contact_id' => null, 'libelle' => "Facture {$facture->numero_facture}", 'debit' => 0, 'credit' => $total],
-            ]
-            : [
-                ['compte_comptable_id' => $compteContrepartie, 'contact_id' => null, 'libelle' => "Facture {$facture->numero_facture}", 'debit' => $total, 'credit' => 0],
-                ['compte_comptable_id' => $compteTiers, 'contact_id' => $facture->contact_id, 'libelle' => "Facture {$facture->numero_facture}", 'debit' => 0, 'credit' => $total],
+        // [compte, montant, sens côté "vente"] — l'avoir inverse les sens, l'achat a son propre schéma.
+        $postes = match ($type) {
+            'achat' => [
+                ['601000', $ht, 'debit', false],
+                ['445000', $tva, 'debit', false],
+                ['443400', $centimes, 'debit', false],
+                ['401000', $ttc, 'credit', true],
+            ],
+            default => [
+                ['411000', $ttc, 'debit', true],
+                ['701000', $ht, 'credit', false],
+                ['445000', $tva, 'credit', false],
+                ['443400', $centimes, 'credit', false],
+            ],
+        };
+
+        $lignes = [];
+        foreach ($postes as [$compte, $montant, $sens, $tiers]) {
+            if ($montant <= 0) {
+                continue;
+            }
+            if ($type === 'avoir') {
+                $sens = $sens === 'debit' ? 'credit' : 'debit';
+            }
+            $lignes[] = [
+                'compte_comptable_id' => $this->compteId($compte),
+                'contact_id' => $tiers ? $facture->contact_id : null,
+                'libelle' => $libelle,
+                'debit' => $sens === 'debit' ? $montant : 0,
+                'credit' => $sens === 'credit' ? $montant : 0,
             ];
+        }
 
         return [
-            'journal_code' => $journalCode,
-            'libelle' => "Facturation {$facture->numero_facture}",
+            'journal_code' => $type === 'achat' ? 'AC' : 'VE',
+            'libelle' => $type === 'avoir' ? $libelle : "Facturation {$facture->numero_facture}",
             'date_ecriture' => optional($facture->date_facture)->format('Y-m-d') ?? now()->format('Y-m-d'),
             'agence_id' => $facture->agence_id,
             'lignes' => $lignes,
         ];
     }
-
     private function prefillFromPayementEmployee(int $id): ?array
     {
         $payement = PayementEmployee::with('employee')->find($id);
@@ -357,6 +390,50 @@ class EcritureComptableController extends Controller
             'libelle' => "Paie {$payement->mois}/{$payement->annee} - {$nomEmploye}",
             'date_ecriture' => $payement->date_paiement ? $payement->date_paiement->format('Y-m-d') : now()->format('Y-m-d'),
             'agence_id' => null,
+            'lignes' => $lignes,
+        ];
+    }
+
+    /**
+     * Règlement d'une facture : trésorerie (banque choisie, ou caisse pour les espèces)
+     * contre le tiers. Vente : 52x/57x au débit, 411 au crédit ; avoir (remboursement) et
+     * achat (règlement fournisseur) : tiers au débit, trésorerie au crédit.
+     */
+    private function prefillFromPaiementFacture(int $id): ?array
+    {
+        $paiement = PaiementFacture::with(['facture.factureOrigine', 'banque'])->find($id);
+        $facture = $paiement?->facture;
+        if (!$facture) {
+            return null;
+        }
+
+        $especes = $paiement->estEnEspeces();
+        $tresorerie = $especes
+            ? $this->compteId('570000')
+            : ($paiement->banque?->compte_comptable_id ?: $this->compteId('520000'));
+        $type = $facture->type_facture?->value;
+        $tiers = $this->compteId($type === 'achat' ? '401000' : '411000');
+        $montant = (float) $paiement->montant;
+
+        $libelle = match ($type) {
+            'avoir' => "Remboursement avoir {$facture->numero_facture}",
+            'achat' => "Règlement facture fournisseur {$facture->numero_facture}",
+            default => "Encaissement facture {$facture->numero_facture}",
+        } . ($paiement->reference ? " — réf. {$paiement->reference}" : '');
+
+        $entree = $type === 'vente';
+        $lignes = [
+            ['compte_comptable_id' => $tresorerie, 'contact_id' => null, 'libelle' => $libelle,
+             'debit' => $entree ? $montant : 0, 'credit' => $entree ? 0 : $montant],
+            ['compte_comptable_id' => $tiers, 'contact_id' => $facture->contact_id, 'libelle' => $libelle,
+             'debit' => $entree ? 0 : $montant, 'credit' => $entree ? $montant : 0],
+        ];
+
+        return [
+            'journal_code' => $especes ? 'CA' : 'BQ',
+            'libelle' => $libelle,
+            'date_ecriture' => $paiement->date_paiement?->format('Y-m-d') ?? now()->format('Y-m-d'),
+            'agence_id' => $facture->agence_id,
             'lignes' => $lignes,
         ];
     }

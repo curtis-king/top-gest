@@ -1,63 +1,50 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Balance des comptes</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: sans-serif; color: #000; font-size: 11px; }
-        h2 { font-size: 16px; margin-bottom: 4px; }
-        .subtitle { font-size: 11px; color: #444; margin-bottom: 16px; }
-        table { border-collapse: collapse; width: 100%; }
-        table, th, td { border: 1px solid #333; }
-        th, td { padding: 6px 8px; }
-        th { background: #eee; text-align: left; font-size: 10px; text-transform: uppercase; }
-        td.num { text-align: right; }
-        tfoot td { font-weight: bold; background: #f5f5f5; }
-    </style>
-</head>
-<body>
-    <h2>Balance des comptes</h2>
-    <div class="subtitle">
-        Période :
-        {{ $dateDebut ? \Carbon\Carbon::parse($dateDebut)->format('d/m/Y') : 'Début' }}
-        &mdash;
-        {{ $dateFin ? \Carbon\Carbon::parse($dateFin)->format('d/m/Y') : "Aujourd'hui" }}
-    </div>
+@extends('pdf.rapport')
 
-    <table>
+@section('contenu')
+    @php $fmt = fn($n) => number_format((float) $n, 0, ',', ' '); @endphp
+
+    @if(round($totalDebit, 2) !== round($totalCredit, 2))
+        <div class="avertissement">Balance déséquilibrée : total débit ≠ total crédit. Vérifiez les écritures.</div>
+    @endif
+
+    <table class="donnees">
         <thead>
             <tr>
-                <th>Numéro</th>
+                <th style="width:80px;">Compte</th>
                 <th>Libellé</th>
-                <th>Total débit</th>
-                <th>Total crédit</th>
-                <th>Solde</th>
+                <th class="num" style="width:110px;">Total débit</th>
+                <th class="num" style="width:110px;">Total crédit</th>
+                <th class="num" style="width:110px;">Solde débiteur</th>
+                <th class="num" style="width:110px;">Solde créditeur</th>
             </tr>
         </thead>
         <tbody>
             @forelse($lignes as $ligne)
+                @php $net = $ligne['total_debit'] - $ligne['total_credit']; @endphp
                 <tr>
                     <td>{{ $ligne['compte']->numero_compte }}</td>
                     <td>{{ $ligne['compte']->libelle }}</td>
-                    <td class="num">{{ number_format($ligne['total_debit'], 0, ',', ' ') }}</td>
-                    <td class="num">{{ number_format($ligne['total_credit'], 0, ',', ' ') }}</td>
-                    <td class="num">{{ number_format($ligne['solde'], 0, ',', ' ') }}</td>
+                    <td class="num">{{ $fmt($ligne['total_debit']) }}</td>
+                    <td class="num">{{ $fmt($ligne['total_credit']) }}</td>
+                    <td class="num">{{ $net > 0 ? $fmt($net) : '' }}</td>
+                    <td class="num">{{ $net < 0 ? $fmt(-$net) : '' }}</td>
                 </tr>
             @empty
-                <tr>
-                    <td colspan="5" style="text-align:center;">Aucune donnée.</td>
-                </tr>
+                <tr><td colspan="6" style="text-align:center;" class="muet">Aucune écriture validée sur la période.</td></tr>
             @endforelse
         </tbody>
         <tfoot>
+            @php
+                $soldesDebiteurs = $lignes->sum(fn($l) => max(0, $l['total_debit'] - $l['total_credit']));
+                $soldesCrediteurs = $lignes->sum(fn($l) => max(0, $l['total_credit'] - $l['total_debit']));
+            @endphp
             <tr>
-                <td colspan="2">Total</td>
-                <td class="num">{{ number_format($totalDebit, 0, ',', ' ') }}</td>
-                <td class="num">{{ number_format($totalCredit, 0, ',', ' ') }}</td>
-                <td></td>
+                <td colspan="2">Totaux</td>
+                <td class="num">{{ $fmt($totalDebit) }}</td>
+                <td class="num">{{ $fmt($totalCredit) }}</td>
+                <td class="num">{{ $fmt($soldesDebiteurs) }}</td>
+                <td class="num">{{ $fmt($soldesCrediteurs) }}</td>
             </tr>
         </tfoot>
     </table>
-</body>
-</html>
+@endsection

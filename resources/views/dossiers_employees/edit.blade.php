@@ -14,7 +14,7 @@
 
         <div style="margin-bottom:18px;">
             <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px;">Employé</label>
-            <select name="employee_id" style="width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:14px;font-family:inherit;color:#fff;outline:none;" onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.12)'" onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'">
+            <select name="employee_id" required style="width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:14px;font-family:inherit;color:#fff;outline:none;" onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.12)'" onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'">
                 <option value="" style="color:#000;">Sélectionnez</option>
                 @foreach ($employees as $id => $nom)
                     <option value="{{ $id }}" style="color:#000;" {{ old('employee_id', $dossierEmployee->employee_id) == $id ? 'selected' : '' }}>{{ $nom }}</option>
@@ -27,7 +27,7 @@
 
         <div style="margin-bottom:18px;">
             <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px;">Date Engagement</label>
-            <input type="date" name="date_engagement" value="{{ old('date_engagement', $dossierEmployee->date_engagement) }}" style="width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:14px;font-family:inherit;color:#fff;outline:none;" onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.12)'" onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'">
+            <input type="date" name="date_engagement" required value="{{ old('date_engagement', $dossierEmployee->date_engagement) }}" style="width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:14px;font-family:inherit;color:#fff;outline:none;" onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.12)'" onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'">
             @error('date_engagement')
                 <span style="font-size:12px;color:#f87171;margin-top:5px;display:block;">{{ $message }}</span>
             @enderror
@@ -43,7 +43,7 @@
 
         <div style="margin-bottom:18px;">
             <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px;">Type Contrat</label>
-            <select name="type_contrat" style="width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:14px;font-family:inherit;color:#fff;outline:none;" onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.12)'" onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'">
+            <select name="type_contrat" required style="width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:14px;font-family:inherit;color:#fff;outline:none;" onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.12)'" onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'">
                 <option value="" style="color:#000;">Sélectionnez</option>
                 @foreach ($typesContrat as $typeContrat)
                     <option value="{{ $typeContrat->value }}" style="color:#000;" {{ old('type_contrat', $dossierEmployee->type_contrat) == $typeContrat->value ? 'selected' : '' }}>{{ $typeContrat->value }}</option>
@@ -56,7 +56,7 @@
 
         <div style="margin-bottom:18px;">
             <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px;">Status</label>
-            <select name="status" style="width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:14px;font-family:inherit;color:#fff;outline:none;" onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.12)'" onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'">
+            <select name="status" required style="width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:14px;font-family:inherit;color:#fff;outline:none;" onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.12)'" onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'">
                 <option value="" style="color:#000;">Sélectionnez</option>
                 @foreach ($statuses as $status)
                     <option value="{{ $status->value }}" style="color:#000;" {{ old('status', $dossierEmployee->status) == $status->value ? 'selected' : '' }}>{{ $status->value }}</option>

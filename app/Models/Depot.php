@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\CloisonneParAgence;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Depot extends Model
 {
+    use CloisonneParAgence;
+
     protected $fillable = ['nom', 'description', 'agence_id'];
 
     public function agence(): BelongsTo

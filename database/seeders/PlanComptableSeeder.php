@@ -30,6 +30,7 @@ class PlanComptableSeeder extends Seeder
             ['421000', 'Personnel, rémunérations dues', 'passif', 'credit'],
             ['431000', 'Sécurité sociale (CNSS)', 'passif', 'credit'],
             ['445000', 'État, TVA', 'passif', 'credit'],
+            ['443400', 'État, centimes additionnels', 'passif', 'credit'],
             ['447000', 'État, impôts retenus à la source', 'passif', 'credit'],
 
             // Classe 5 - Trésorerie (les comptes bancaires spécifiques sont créés à la volée sous 521xxx)

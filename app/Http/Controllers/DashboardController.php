@@ -25,12 +25,14 @@ class DashboardController extends Controller
 
         $clientsCount = Contact::where('type_contact', TypeContact::Client)->count();
 
+        // Chiffre d'affaires encaissé : ventes moins avoirs (achats et proformas exclus).
         $revenuMois = DB::table('factures')
             ->join('item_factures', 'factures.id', '=', 'item_factures.facture_id')
             ->where('factures.statut_facture', 'payee')
+            ->whereIn('factures.type_facture', ['vente', 'avoir'])
             ->whereMonth('factures.date_facture', now()->month)
             ->whereYear('factures.date_facture', now()->year)
-            ->select(DB::raw('COALESCE(SUM(item_factures.quantite * item_factures.prix_unitaire), 0) as total'))
+            ->select(DB::raw("COALESCE(SUM(CASE WHEN factures.type_facture = 'avoir' THEN -1 ELSE 1 END * item_factures.quantite * item_factures.prix_unitaire), 0) as total"))
             ->value('total');
 
         $projetsActifs = Project::whereIn('status_project', [
@@ -47,10 +49,11 @@ class DashboardController extends Controller
         $revenusMensuels = DB::table('factures')
             ->join('item_factures', 'factures.id', '=', 'item_factures.facture_id')
             ->where('factures.statut_facture', 'payee')
+            ->whereIn('factures.type_facture', ['vente', 'avoir'])
             ->whereYear('factures.date_facture', now()->year)
             ->select(
                 DB::raw('MONTH(factures.date_facture) as mois'),
-                DB::raw('SUM(item_factures.quantite * item_factures.prix_unitaire) as total')
+                DB::raw("SUM(CASE WHEN factures.type_facture = 'avoir' THEN -1 ELSE 1 END * item_factures.quantite * item_factures.prix_unitaire) as total")
             )
             ->groupBy(DB::raw('MONTH(factures.date_facture)'))
             ->orderBy('mois')

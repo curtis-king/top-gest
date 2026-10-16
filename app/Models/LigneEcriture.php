@@ -2,11 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\CloisonneParAgence;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LigneEcriture extends Model
 {
+    use CloisonneParAgence;
+
+    protected string $agenceParent = 'ecriture';
+
+    protected array $relationsCloisonnees = ['contact'];
+
     protected $table = 'lignes_ecritures';
 
     protected $fillable = [

@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Concerns;
 
 use App\Enums\StatutEcriture;
 use App\Models\CompteComptable;
-use App\Models\Employee;
 use App\Models\LigneEcriture;
+use App\Support\AgencyContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
@@ -108,16 +108,44 @@ trait CalculeComptabilite
 
     protected function resolveAgenceFilter(Request $request): ?int
     {
-        if ($agenceId = $request->input('agence_id')) {
-            return (int) $agenceId;
+        // Un utilisateur d'agence ne voit que la sienne, quel que soit le paramètre transmis.
+        if (AgencyContext::isRestricted()) {
+            return AgencyContext::agenceId();
         }
 
-        if (!auth()->user()->isAdmin()) {
-            $userEmp = Employee::where('user_id', auth()->id())->first();
+        return $request->filled('agence_id') ? (int) $request->input('agence_id') : null;
+    }
+    /**
+     * Mouvements validés d'un compte sur la période, avec solde cumulé (sens normal du compte).
+     */
+    protected function lignesGrandLivre(CompteComptable $compte, ?string $dateDebut, ?string $dateFin, ?int $agenceId): Collection
+    {
+        $soldeCumule = 0;
 
-            return $userEmp?->agence_id;
-        }
+        return LigneEcriture::with(['ecriture.journal', 'contact'])
+            ->where('compte_comptable_id', $compte->id)
+            ->whereHas('ecriture', function ($q) use ($dateDebut, $dateFin, $agenceId) {
+                $q->where('statut', StatutEcriture::Validee->value);
+                if ($dateDebut) {
+                    $q->whereDate('date_ecriture', '>=', $dateDebut);
+                }
+                if ($dateFin) {
+                    $q->whereDate('date_ecriture', '<=', $dateFin);
+                }
+                if ($agenceId) {
+                    $q->where('agence_id', $agenceId);
+                }
+            })
+            ->get()
+            ->sortBy(fn ($l) => $l->ecriture->date_ecriture?->format('Y-m-d') . sprintf('-%010d-%010d', $l->ecriture_comptable_id, $l->id))
+            ->values()
+            ->map(function ($ligne) use (&$soldeCumule, $compte) {
+                $soldeCumule += $compte->sens_normal?->value === 'debit'
+                    ? (float) $ligne->debit - (float) $ligne->credit
+                    : (float) $ligne->credit - (float) $ligne->debit;
+                $ligne->solde_cumule = $soldeCumule;
 
-        return null;
+                return $ligne;
+            });
     }
 }

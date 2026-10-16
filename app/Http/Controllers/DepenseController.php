@@ -161,7 +161,7 @@ class DepenseController extends Controller
 
     private function nextNumero(): string
     {
-        $last = Depense::orderBy('id', 'desc')->first();
+        $last = Depense::withoutGlobalScope('agence')->orderBy('id', 'desc')->first();
         $num = $last ? intval(substr($last->numero_depense, 4)) + 1 : 1;
 
         return 'DEP-' . str_pad($num, 5, '0', STR_PAD_LEFT);

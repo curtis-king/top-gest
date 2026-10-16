@@ -8,6 +8,7 @@
     <div style="margin-bottom:20px;">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
             <h2 style="font-size:18px;font-weight:600;color:#f1f5f9;">Liste des factures</h2>
+            <a href="{{ route('factures.avoirs.create') }}" class="btn-primary" style="text-decoration:none;background:rgba(248,113,113,.12);color:#f87171;border:1px solid rgba(248,113,113,.25);">+ Nouvel avoir</a>
             <a href="{{ route('factures.create') }}" class="btn-primary" style="text-decoration:none;">+ Nouvelle facture</a>
         </div>
 
@@ -88,6 +89,7 @@
                     $sv = $facture->statut_facture?->value ?? 'brouillon';
                     $tc = ['vente'=>'#3b82f6','achat'=>'#f59e0b','avoir'=>'#f87171','proforma'=>'#94a3b8'][$tv]??'rgba(255,255,255,.45)';
                     $sc = ['brouillon'=>'#94a3b8','impayee'=>'#f87171','partielle'=>'#f59e0b','payee'=>'#4ade80','annulee'=>'#6b7280'][$sv]??'rgba(255,255,255,.45)';
+                    $avoirEmis = $tv === 'vente' ? $facture->avoirs->firstWhere('type_facture', \App\Enums\TypeFacture::Avoir) : null;
                 @endphp
                 <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:20px;transition:all .2s;" onmouseover="this.style.borderColor='rgba(59,130,246,.3)';this.style.background='rgba(255,255,255,.05)'" onmouseout="this.style.borderColor='rgba(255,255,255,.06)';this.style.background='rgba(255,255,255,.03)'">
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;">
@@ -98,6 +100,9 @@
                         <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">
                             <span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;background:{{ $tc }}22;color:{{ $tc }};">{{ $tv }}</span>
                             <span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;background:{{ $sc }}22;color:{{ $sc }};">{{ $sv }}</span>
+                            @if($avoirEmis)
+                                <span title="Avoir {{ $avoirEmis->numero_facture }}" style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;background:#f8717122;color:#f87171;">{{ round($avoirEmis->total_ttc, 2) >= round($facture->total_ttc, 2) ? 'annulée par avoir' : 'corrigée par avoir' }}</span>
+                            @endif
                         </div>
                     </div>
 
@@ -106,17 +111,19 @@
                         @if($facture->agence)
                             <div style="font-size:11px;color:rgba(255,255,255,.35);">{{ $facture->agence->name_agence }}</div>
                         @endif
-                        <div style="margin-top:6px;font-size:16px;font-weight:700;color:#4ade80;">{{ number_format($facture->montant_total, 0, ',', ' ') }} FCFA</div>
+                        <div style="margin-top:6px;font-size:16px;font-weight:700;color:{{ $tv === 'avoir' ? '#f87171' : '#4ade80' }};">{{ $tv === 'avoir' ? '− ' : '' }}{{ number_format($facture->montant_total, 0, ',', ' ') }} FCFA</div>
                     </div>
 
                     <div style="padding-top:10px;display:flex;gap:8px;justify-content:flex-end;">
                         <a href="{{ route('factures.manage', $facture) }}" style="font-size:12px;font-weight:600;color:#3b82f6;text-decoration:none;padding:4px 10px;border-radius:6px;transition:all .15s;" onmouseover="this.style.background='rgba(59,130,246,.1)'" onmouseout="this.style.background='transparent'">Gérer</a>
+                        @unless($facture->estCertifiee())
                         <a href="{{ route('factures.edit', $facture) }}" style="font-size:12px;font-weight:500;color:rgba(255,255,255,.45);text-decoration:none;padding:4px 10px;border-radius:6px;transition:all .15s;" onmouseover="this.style.color='#60a5fa';this.style.background='rgba(96,165,250,.08)'" onmouseout="this.style.color='rgba(255,255,255,.45)';this.style.background='transparent'">Modifier</a>
                         <form method="POST" action="{{ route('factures.destroy', $facture) }}" style="display:inline;" onsubmit="return confirm('Confirmer la suppression ?');">
                             @csrf
                             @method('DELETE')
                             <button type="submit" style="font-size:12px;font-weight:500;color:#f87171;text-decoration:none;padding:4px 10px;border-radius:6px;background:none;border:none;cursor:pointer;font-family:inherit;transition:all .15s;" onmouseover="this.style.background='rgba(248,113,113,.08)'" onmouseout="this.style.background='transparent'">Supprimer</button>
                         </form>
+                        @endunless
                     </div>
                 </div>
             @empty

@@ -14,6 +14,12 @@
                 Grand livre
             @endif
         </h2>
+        <div style="display:flex;gap:8px;">
+            @if($compte)
+                <a href="{{ route('comptabilite.grand-livre.pdf', request()->query()) }}" target="_blank" class="btn-outline" style="text-decoration:none;">↓ Ce compte en PDF</a>
+            @endif
+            <a href="{{ route('comptabilite.grand-livre.pdf', request()->except('compte_comptable_id')) }}" target="_blank" class="btn-outline" style="text-decoration:none;">↓ Grand livre complet (PDF)</a>
+        </div>
     </div>
 
     <form method="GET" action="{{ route('comptabilite.grand-livre') }}" style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">

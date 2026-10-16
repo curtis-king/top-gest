@@ -20,10 +20,7 @@ class FacturePayloadBuilder
         $additionalCentTax = $facture->centimes_additionnels_actif ? round($totalTaxAmount * 0.05) : 0;
         $totalAmount = $subtotal + $totalTaxAmount + $additionalCentTax;
 
-        $contact = $facture->contact;
-        $recipientTypeKey = $contact?->type_client_sfec ?? ($contact?->raison_social ? 'entreprise' : 'particulier');
-        $recipientType = config("sfec.recipient_types.{$recipientTypeKey}", config('sfec.recipient_types.particulier'));
-        $isRecipientTaxable = in_array($recipientTypeKey, ['entreprise', 'etat']);
+        $destinataire = $this->destinataire($facture);
 
         $paymentMethodKey = $facture->mode_paiement ?? 'especes';
         $paymentMethod = config("sfec.payment_methods.{$paymentMethodKey}", config('sfec.payment_methods.especes'));
@@ -48,19 +45,33 @@ class FacturePayloadBuilder
             'electronic_stamp_duty' => 0,
             'amount_due' => $totalAmount,
             'total_amount' => $totalAmount,
-            'recipient_type' => $recipientType,
-            'is_recipient_taxable' => $isRecipientTaxable,
-            'recipient_name' => $contact?->raison_social ?? $contact?->nom_complet ?? $facture->raison_social,
-            'recipient_niu' => $contact?->niu,
-            'recipient_rccm' => null,
-            'recipient_address' => $contact?->adresse,
-            'recipient_phone' => $contact?->telephone,
-            'recipient_email' => $contact?->adresse_email,
+            ...$destinataire,
             'payment_method' => $paymentMethod,
             'payment_reference' => null,
             'payment_date' => null,
             'notes' => null,
             'items' => $items->map(fn($item) => collect($item)->except(['_taux_tva'])->all())->values()->all(),
+        ];
+    }
+
+    /**
+     * Champs recipient_* : depuis la fiche contact, ou client particulier saisi en texte libre.
+     */
+    public function destinataire(Facture $facture): array
+    {
+        if ($facture->contact) {
+            return $facture->contact->donneesSfec();
+        }
+
+        return [
+            'recipient_type' => config('sfec.recipient_types.particulier'),
+            'is_recipient_taxable' => false,
+            'recipient_name' => $facture->raison_social,
+            'recipient_niu' => null,
+            'recipient_rccm' => null,
+            'recipient_address' => null,
+            'recipient_phone' => null,
+            'recipient_email' => null,
         ];
     }
 
@@ -80,6 +91,7 @@ class FacturePayloadBuilder
             'discount_amount' => 0,
             'discount_type' => 'fixed',
             'net_amount' => $netAmount,
+            'amount_after_discount' => $netAmount,
             'tax_rate' => (string) ((float) $item->taux_tva),
             'tax_amount' => $taxAmount,
             'total_amount' => $netAmount + $taxAmount,

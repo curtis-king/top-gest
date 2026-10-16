@@ -15,7 +15,7 @@
 
             <div style="margin-bottom:18px;">
                 <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">Raison sociale</label>
-                <input type="text" name="raison_social" value="{{ old('raison_social', $contact->raison_social) }}" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                <input type="text" name="raison_social" data-required-if="type_client_sfec:entreprise,etat" value="{{ old('raison_social', $contact->raison_social) }}" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
                 @error('raison_social') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
             </div>
 
@@ -28,12 +28,12 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
                 <div>
                     <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">Email</label>
-                    <input type="email" name="adresse_email" value="{{ old('adresse_email', $contact->adresse_email) }}" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                    <input type="email" name="adresse_email" required value="{{ old('adresse_email', $contact->adresse_email) }}" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
                     @error('adresse_email') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
                 </div>
                 <div>
                     <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">Téléphone</label>
-                    <input type="text" name="telephone" value="{{ old('telephone', $contact->telephone) }}" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                    <input type="text" name="telephone" required value="{{ old('telephone', $contact->telephone) }}" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
                     @error('telephone') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
                 </div>
             </div>
@@ -41,7 +41,7 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
                 <div>
                     <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">Type de contact</label>
-                    <select name="type_contact" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;cursor:pointer;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                    <select name="type_contact" required style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;cursor:pointer;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
                         @foreach($types as $t)
                             <option value="{{ $t->value }}" {{ old('type_contact', $contact->type_contact?->value) == $t->value ? 'selected' : '' }} style="color:#000;">{{ $t->value }}</option>
                         @endforeach
@@ -68,7 +68,7 @@
                 </div>
                 <div>
                     <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">NIU (identifiant fiscal)</label>
-                    <input type="text" name="niu" value="{{ old('niu', $contact->niu) }}" placeholder="Requis pour la certification SFEC si entreprise/état" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                    <input type="text" name="niu" data-required-if="type_client_sfec:entreprise,etat" value="{{ old('niu', $contact->niu) }}" placeholder="16 ou 17 caractères — requis si entreprise / État" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
                     @error('niu') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
                 </div>
             </div>
@@ -76,19 +76,35 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
                 <div>
                     <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">Type de client (SFEC)</label>
-                    <select name="type_client_sfec" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;cursor:pointer;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
-                        <option value="" style="color:#000;">Déduit automatiquement</option>
+                    <select name="type_client_sfec" data-required-if="type_contact:client" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;cursor:pointer;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                        <option value="" style="color:#000;">— Choisir —</option>
                         @foreach(array_keys(config('sfec.recipient_types')) as $key)
-                            <option value="{{ $key }}" {{ old('type_client_sfec', $contact->type_client_sfec) == $key ? 'selected' : '' }} style="color:#000;">{{ $key }}</option>
+                            <option value="{{ $key }}" {{ old('type_client_sfec', $contact->type_client_sfec) == $key ? 'selected' : '' }} style="color:#000;">{{ config('sfec.recipient_labels.'.$key, $key) }}</option>
                         @endforeach
                     </select>
                     @error('type_client_sfec') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
                 </div>
+                <div>
+                    <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">RCCM (registre du commerce)</label>
+                    <input type="text" name="rccm" value="{{ old('rccm', $contact->rccm) }}" placeholder="Facultatif" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                    @error('rccm') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
+                </div>
+            </div>
+
+            <div style="margin-bottom:18px;">
+                <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">Assujetti à la TVA</label>
+                <select name="assujetti_tva" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;cursor:pointer;">
+                    <option value="" style="color:#000;" {{ (string) old('assujetti_tva', is_null($contact->assujetti_tva) ? '' : (int) $contact->assujetti_tva) === '' ? 'selected' : '' }}>Selon le type (entreprise / État = oui)</option>
+                    <option value="1" style="color:#000;" {{ (string) old('assujetti_tva', is_null($contact->assujetti_tva) ? '' : (int) $contact->assujetti_tva) === '1' ? 'selected' : '' }}>Oui</option>
+                    <option value="0" style="color:#000;" {{ (string) old('assujetti_tva', is_null($contact->assujetti_tva) ? '' : (int) $contact->assujetti_tva) === '0' ? 'selected' : '' }}>Non</option>
+                </select>
+                <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px;">Transmis au SFEC (is_recipient_taxable). Requis pour un client : type SFEC. Entreprise / État : NIU de 16 ou 17 caractères. État / étranger : adresse.</div>
+                @error('assujetti_tva') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
             </div>
 
             <div style="margin-bottom:18px;">
                 <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">Adresse</label>
-                <textarea name="adresse" rows="3" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;resize:vertical;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">{{ old('adresse', $contact->adresse) }}</textarea>
+                <textarea name="adresse" data-required-if="type_client_sfec:etat,etranger" rows="3" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;resize:vertical;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">{{ old('adresse', $contact->adresse) }}</textarea>
                 @error('adresse') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
             </div>
 

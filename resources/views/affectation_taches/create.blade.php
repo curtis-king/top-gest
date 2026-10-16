@@ -14,7 +14,7 @@
 
             <div style="margin-bottom:18px;">
                 <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">Tâche</label>
-                <select name="tache_project_id" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;cursor:pointer;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                <select name="tache_project_id" required style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;cursor:pointer;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
                     <option value="" style="color:#000;">Sélectionner une tâche</option>
                     @foreach($taches as $id => $name)
                         <option value="{{ $id }}" {{ old('tache_project_id') == $id ? 'selected' : '' }} style="color:#000;">{{ $name }}</option>
@@ -25,7 +25,7 @@
 
             <div style="margin-bottom:18px;">
                 <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">Date d'affectation</label>
-                <input type="date" name="date_affectation" value="{{ old('date_affectation') }}" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;color-scheme:dark;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                <input type="date" name="date_affectation" required value="{{ old('date_affectation') }}" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;color-scheme:dark;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
                 @error('date_affectation') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
             </div>
 

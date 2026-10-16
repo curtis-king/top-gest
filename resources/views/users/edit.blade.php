@@ -110,7 +110,7 @@ $existingRoles = $roles->toArray();
                 Portée d'accès aux données
                 <span style="font-size:10px;color:rgba(255,255,255,.3);font-weight:400;margin-left:6px;">(auto-rempli selon le rôle)</span>
             </label>
-            <select name="scope" id="scopeSelect" style="{{ $inputStyle }}cursor:pointer;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+            <select name="scope" required id="scopeSelect" style="{{ $inputStyle }}cursor:pointer;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
                 @foreach($scopes as $s)
                     <option value="{{ $s }}" style="color:#000;" {{ $currentScope == $s ? 'selected' : '' }}>
                         {{ $s }} — {{ $scopeLabels[$s] ?? $s }}

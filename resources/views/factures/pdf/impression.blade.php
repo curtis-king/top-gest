@@ -211,10 +211,15 @@
         default    => '',
     };
 
-    $clientNom = $contact?->raison_social
-              ?? $contact?->nom_complet
-              ?? $facture->raison_social
-              ?? '—';
+    // Facture certifiée : on imprime le client tel qu'envoyé au SFEC, pas la fiche contact actuelle.
+    $certifie = $facture->client_certifie;
+
+    $clientNom = $certifie
+        ? ($certifie['recipient_name'] ?? '—')
+        : ($contact?->raison_social ?? $contact?->nom_complet ?? $facture->raison_social ?? '—');
+    $clientNiu       = $certifie ? ($certifie['recipient_niu'] ?? null) : $contact?->niu;
+    $clientAdresse   = $certifie ? ($certifie['recipient_address'] ?? null) : $contact?->adresse;
+    $clientTelephone = $certifie ? ($certifie['recipient_phone'] ?? null) : $contact?->telephone;
 
     // Formatage nombre → CFA (1.017.500)
     $fmt = fn($n) => number_format((float)$n, 0, ',', '.');
@@ -250,11 +255,17 @@
                 <div class="client-info">
                     <div><strong>Numéro :</strong> {{ $facture->numero_facture }}</div>
                     <div><strong>Date :</strong> {{ $facture->date_facture?->format('d-m-Y') ?? '—' }}</div>
-                    @if($contact?->adresse)
-                        <div><strong>BP :</strong> {{ $contact->adresse }}</div>
+                    @if($facture->type_facture?->value === 'avoir' && $facture->factureOrigine)
+                        <div><strong>Avoir sur facture n° :</strong> {{ $facture->factureOrigine->numero_facture }} du {{ $facture->factureOrigine->date_facture?->format('d-m-Y') ?? '—' }}</div>
                     @endif
-                    @if($contact?->telephone)
-                        <div><strong>Tel :</strong> {{ $contact->telephone }}</div>
+                    @if($clientNiu)
+                        <div><strong>NIU client :</strong> {{ $clientNiu }}</div>
+                    @endif
+                    @if($clientAdresse)
+                        <div><strong>BP :</strong> {{ $clientAdresse }}</div>
+                    @endif
+                    @if($clientTelephone)
+                        <div><strong>Tel :</strong> {{ $clientTelephone }}</div>
                     @endif
                     @if($facture->interlocuteur)
                         <div><strong>Interlocuteur :</strong> {{ $facture->interlocuteur }}</div>

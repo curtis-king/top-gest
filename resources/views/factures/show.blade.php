@@ -77,11 +77,13 @@
 
 <div style="margin-top:20px;display:flex;gap:12px;">
     <a href="{{ route('factures.manage', $facture) }}" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">Gérer les articles</a>
+    @unless($facture->estCertifiee())
     <a href="{{ route('factures.edit', $facture) }}" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#f1f5f9;">Modifier</a>
     <form method="POST" action="{{ route('factures.destroy', $facture) }}" style="display:inline;" onsubmit="return confirm('Confirmer la suppression ?');">
         @csrf
         @method('DELETE')
         <button type="submit" class="btn-outline" style="border-color:rgba(248,113,113,.2);color:#f87171;cursor:pointer;font-family:inherit;">Supprimer</button>
     </form>
+    @endunless
 </div>
 @endsection

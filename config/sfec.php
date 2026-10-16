@@ -21,12 +21,20 @@ return [
         'etranger' => 'foreign',
     ],
 
+    'recipient_labels' => [
+        'entreprise' => 'Entreprise',
+        'particulier' => 'Particulier',
+        'etat' => 'État / administration',
+        'etranger' => 'Étranger',
+    ],
+
     'payment_methods' => [
         'especes' => 'cash',
         'mobile_money' => 'mobile_money',
         'virement' => 'bank_transfer',
         'cheque' => 'cheque',
         'carte' => 'card',
+        'credit' => 'credit',
     ],
 
     'item_types' => [

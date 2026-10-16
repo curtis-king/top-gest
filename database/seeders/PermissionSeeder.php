@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -84,18 +85,22 @@ class PermissionSeeder extends Seeder
         }
 
         // ── Utilisateurs par défaut ───────────────────────────────────
-        $adminSys = User::firstOrCreate(
-            ['email' => 'adminm@gmail.com'],
-            ['name' => 'Administrator', 'password' => bcrypt('password'), 'scope' => 'dg']
-        );
-        $adminSys->update(['scope' => 'dg']);
-        $adminSys->syncRoles(['admin-systeme']);
+        // Mot de passe aléatoire, affiché une seule fois à la création (jamais de mot de passe connu).
+        $this->compteParDefaut(env('SEED_ADMIN_EMAIL', 'adminm@gmail.com'), 'Administrator', 'admin-systeme');
+        $this->compteParDefaut(env('SEED_DG_EMAIL', 'dg@mygest.local'), 'Directeur Général', 'dg');
+    }
 
-        $dg = User::firstOrCreate(
-            ['email' => 'dg@mygest.local'],
-            ['name' => 'Directeur Général', 'password' => bcrypt('password'), 'scope' => 'dg']
-        );
-        $dg->update(['scope' => 'dg']);
-        $dg->syncRoles(['dg']);
+    private function compteParDefaut(string $email, string $nom, string $role): void
+    {
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            $motDePasse = Str::password(16);
+            $user = User::create(['email' => $email, 'name' => $nom, 'password' => $motDePasse, 'scope' => 'dg']);
+            $this->command?->warn("  Compte {$email} créé — mot de passe : {$motDePasse} (à changer dès la première connexion)");
+        }
+
+        $user->update(['scope' => 'dg']);
+        $user->syncRoles([$role]);
     }
 }

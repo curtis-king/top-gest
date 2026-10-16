@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\CloisonneParAgence;
 use App\Enums\StatusDossier;
 use App\Enums\TypeContrat;
 use Illuminate\Database\Eloquent\Model;
@@ -9,6 +10,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DossierEmployee extends Model
 {
+    use CloisonneParAgence;
+
+    protected string $agenceParent = 'employee';
+
     protected $table = 'dossiers_employees';
 
     protected $fillable = [

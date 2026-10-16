@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\CloisonneParAgence;
 use App\Enums\TypeActionLivret;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LivretBancaire extends Model
 {
+    use CloisonneParAgence;
+
+    protected array $relationsCloisonnees = ['contact'];
+
     protected $table = 'livrets_bancaires';
 
     protected $fillable = [

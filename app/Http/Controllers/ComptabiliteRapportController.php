@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\CalculeComptabilite;
 use App\Models\Agence;
 use App\Models\CompteComptable;
-use App\Models\LigneEcriture;
-use App\Enums\StatutEcriture;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -24,37 +22,11 @@ class ComptabiliteRapportController extends Controller
         $comptes = CompteComptable::where('actif', true)->orderBy('numero_compte')->get(['id', 'numero_compte', 'libelle', 'sens_normal']);
         $compte = null;
         $lignes = collect();
-        $soldeCumule = 0;
 
         if ($compteId) {
             $compte = CompteComptable::findOrFail($compteId);
 
-            $lignes = LigneEcriture::with(['ecriture.journal', 'contact'])
-                ->where('compte_comptable_id', $compteId)
-                ->whereHas('ecriture', function ($q) use ($dateDebut, $dateFin, $agenceId) {
-                    $q->where('statut', StatutEcriture::Validee->value);
-                    if ($dateDebut) {
-                        $q->whereDate('date_ecriture', '>=', $dateDebut);
-                    }
-                    if ($dateFin) {
-                        $q->whereDate('date_ecriture', '<=', $dateFin);
-                    }
-                    if ($agenceId) {
-                        $q->where('agence_id', $agenceId);
-                    }
-                })
-                ->get()
-                ->sortBy(fn($l) => $l->ecriture->date_ecriture)
-                ->values()
-                ->map(function ($ligne) use (&$soldeCumule, $compte) {
-                    $mouvement = $compte->sens_normal?->value === 'debit'
-                        ? (float) $ligne->debit - (float) $ligne->credit
-                        : (float) $ligne->credit - (float) $ligne->debit;
-                    $soldeCumule += $mouvement;
-                    $ligne->solde_cumule = $soldeCumule;
-
-                    return $ligne;
-                });
+            $lignes = $this->lignesGrandLivre($compte, $dateDebut, $dateFin, $agenceId);
         }
 
         $agences = Agence::pluck('name_agence', 'id');

@@ -75,6 +75,14 @@
                             <div>
                                 <div style="font-size:15px;font-weight:600;color:#f1f5f9;">{{ $displayName }}</div>
                                 <div style="font-size:12px;color:rgba(255,255,255,.35);">#{{ $contact->id }}</div>
+                                @if($tv === 'client')
+                                    @php $manques = $contact->manquesSfec(); @endphp
+                                    @if($manques)
+                                        <span title="{{ implode(' ', $manques) }}" style="display:inline-block;margin-top:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;background:#f59e0b22;color:#f59e0b;">SFEC incomplet</span>
+                                    @else
+                                        <span style="display:inline-block;margin-top:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;background:#4ade8022;color:#4ade80;">SFEC prêt</span>
+                                    @endif
+                                @endif
                             </div>
                         </div>
                         <div style="display:flex;gap:4px;">

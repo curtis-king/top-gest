@@ -95,7 +95,7 @@
                 @method('PATCH')
                 <div style="flex:1;">
                     <div class="mg-label" style="margin-bottom:4px;">Statut</div>
-                    <select name="statut" class="mg-select">
+                    <select name="statut" required class="mg-select">
                         @foreach(\App\Enums\StatutDepense::cases() as $s)
                             <option value="{{ $s->value }}" {{ $sv == $s->value ? 'selected' : '' }}>{{ $s->value }}</option>
                         @endforeach

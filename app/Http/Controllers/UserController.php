@@ -9,6 +9,7 @@ use App\Http\Controllers\Traits\Sortable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 use Spatie\Permission\Models\Role;
 
@@ -52,7 +53,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name'        => ['required', 'string', 'max:255'],
             'email'       => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password'    => ['required', 'string', 'min:8'],
+            'password'    => ['required', 'string', Password::defaults()],
             'scope'       => ['required', 'string', Rule::in(User::SCOPES)],
             'roles'       => ['required', 'array', 'min:1'],
             'roles.*'     => ['string', Rule::in($roleNames)],
@@ -61,6 +62,7 @@ class UserController extends Controller
         ]);
 
         $selectedRoles = $validated['roles'];
+        $this->verifierRolesAttribuables($selectedRoles);
         $employeeId    = $validated['employee_id'] ?? null;
         unset($validated['roles'], $validated['employee_id']);
         $validated['password'] = bcrypt($validated['password']);
@@ -105,7 +107,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name'        => ['required', 'string', 'max:255'],
             'email'       => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
-            'password'    => ['nullable', 'string', 'min:8'],
+            'password'    => ['nullable', 'string', Password::defaults()],
             'scope'       => ['required', 'string', Rule::in(User::SCOPES)],
             'roles'       => ['required', 'array', 'min:1'],
             'roles.*'     => ['string', Rule::in($roleNames)],
@@ -116,6 +118,15 @@ class UserController extends Controller
         $selectedRoles = $validated['roles'];
         $newEmployeeId = $validated['employee_id'] ?? null;
         unset($validated['roles'], $validated['employee_id']);
+
+        // Personne ne modifie ses propres droits : on conserve rôles et scope actuels.
+        if ($user->is(auth()->user())) {
+            $selectedRoles = $user->getRoleNames()->all();
+            unset($validated['scope']);
+        } else {
+            $this->verifierRolesAttribuables($selectedRoles);
+            $this->verifierDernierAdmin($user, $selectedRoles);
+        }
 
         if (empty($validated['password'])) {
             unset($validated['password']);
@@ -143,9 +154,39 @@ class UserController extends Controller
                 ->with('error', 'Vous ne pouvez pas supprimer votre propre compte.');
         }
 
+        $this->verifierDernierAdmin($user, []);
+
         $user->delete();
 
         return redirect()->route('users.index')
             ->with('success', 'Utilisateur supprimé avec succès.');
+    }
+
+    /**
+     * Le rôle admin-systeme (gestion des comptes) ne peut être attribué que par un admin-systeme.
+     */
+    private function verifierRolesAttribuables(array $roles): void
+    {
+        abort_if(
+            in_array('admin-systeme', $roles, true) && !auth()->user()->hasRole('admin-systeme'),
+            403,
+            'Seul un administrateur système peut attribuer le rôle admin-systeme.'
+        );
+    }
+
+    /**
+     * Empêche de supprimer ou rétrograder le dernier administrateur système.
+     */
+    private function verifierDernierAdmin(User $user, array $nouveauxRoles): void
+    {
+        if (!$user->hasRole('admin-systeme') || in_array('admin-systeme', $nouveauxRoles, true)) {
+            return;
+        }
+
+        abort_if(
+            User::role('admin-systeme')->count() <= 1,
+            403,
+            'Impossible : c\'est le dernier administrateur système.'
+        );
     }
 }

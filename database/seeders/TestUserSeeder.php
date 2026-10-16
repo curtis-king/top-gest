@@ -11,6 +11,12 @@ class TestUserSeeder extends Seeder
 {
     public function run(): void
     {
+        // Comptes de test au mot de passe connu : jamais en production.
+        if (app()->isProduction()) {
+            $this->command->error('TestUserSeeder refusé en production.');
+            return;
+        }
+
         // ── Données structurelles ─────────────────────────────────────
         $compagnie = DB::table('compagnies')->insertGetId([
             'name'       => 'Société Test',

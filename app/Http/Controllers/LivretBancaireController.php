@@ -8,6 +8,7 @@ use App\Models\Banque;
 use App\Models\Contact;
 use App\Models\Employee;
 use App\Models\LivretBancaire;
+use App\Models\PaiementFacture;
 use App\Http\Controllers\Traits\Sortable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -110,8 +111,12 @@ class LivretBancaireController extends Controller
         return view('livrets_bancaires.show', compact('livretBancaire'));
     }
 
-    public function edit(LivretBancaire $livretBancaire): View
+    public function edit(LivretBancaire $livretBancaire): View|RedirectResponse
     {
+        if ($refus = $this->refuserSiLieAUnPaiement($livretBancaire)) {
+            return $refus;
+        }
+
         $types = TypeActionLivret::cases();
         $banques = Banque::pluck('nom', 'id');
         $contacts = Contact::pluck('raison_social', 'id');
@@ -122,6 +127,10 @@ class LivretBancaireController extends Controller
 
     public function update(Request $request, LivretBancaire $livretBancaire): RedirectResponse
     {
+        if ($refus = $this->refuserSiLieAUnPaiement($livretBancaire)) {
+            return $refus;
+        }
+
         $validated = $request->validate([
             'date_action' => ['required', 'date'],
             'type_action' => ['required', 'string'],
@@ -141,9 +150,28 @@ class LivretBancaireController extends Controller
 
     public function destroy(LivretBancaire $livretBancaire): RedirectResponse
     {
+        if ($refus = $this->refuserSiLieAUnPaiement($livretBancaire)) {
+            return $refus;
+        }
+
         $livretBancaire->delete();
 
         return redirect()->route('livrets-bancaires.index')
             ->with('success', 'Écriture bancaire supprimée avec succès.');
+    }
+    /**
+     * Une ligne créée par le paiement d'une facture se gère depuis ce paiement
+     * (sinon facture, livret et comptabilité divergent).
+     */
+    private function refuserSiLieAUnPaiement(LivretBancaire $livret): ?RedirectResponse
+    {
+        $paiement = PaiementFacture::with('facture')->where('livret_bancaire_id', $livret->id)->first();
+        if (!$paiement) {
+            return null;
+        }
+
+        return redirect()->route('livrets-bancaires.show', $livret)->with('error',
+            "Cette opération provient du paiement de la facture {$paiement->facture?->numero_facture} : modifiez ou supprimez le paiement depuis la facture."
+        );
     }
 }

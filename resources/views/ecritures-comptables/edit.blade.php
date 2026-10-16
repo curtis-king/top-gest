@@ -48,14 +48,14 @@
             </div>
             <div>
                 <label class="mg-label">Date d'écriture</label>
-                <input type="date" name="date_ecriture" value="{{ old('date_ecriture', $ecritureComptable->date_ecriture ? \Carbon\Carbon::parse($ecritureComptable->date_ecriture)->format('Y-m-d') : '') }}" class="mg-input">
+                <input type="date" name="date_ecriture" required value="{{ old('date_ecriture', $ecritureComptable->date_ecriture ? \Carbon\Carbon::parse($ecritureComptable->date_ecriture)->format('Y-m-d') : '') }}" class="mg-input">
                 @error('date_ecriture') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
             </div>
         </div>
 
         <div style="margin-bottom:18px;">
             <label class="mg-label">Libellé</label>
-            <input type="text" name="libelle" value="{{ old('libelle', $ecritureComptable->libelle) }}" class="mg-input">
+            <input type="text" name="libelle" required value="{{ old('libelle', $ecritureComptable->libelle) }}" class="mg-input">
             @error('libelle') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
         </div>
 

@@ -26,6 +26,8 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeePdfController;
 use App\Http\Controllers\EmployeeWizardController;
 use App\Http\Controllers\EcritureComptableController;
+use App\Http\Controllers\EncaissementController;
+use App\Http\Controllers\FactureAvoirController;
 use App\Http\Controllers\FactureCertificationController;
 use App\Http\Controllers\FactureController;
 use App\Http\Controllers\FacturePdfController;
@@ -46,22 +48,22 @@ Route::get('/', function () {
 });
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
+Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:login');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::get('/register', [RegisterController::class, 'showRegisterForm'])->name('register');
-Route::post('/register', [RegisterController::class, 'register']);
+Route::post('/register', [RegisterController::class, 'register'])->middleware('throttle:login');
 
 Route::middleware(['auth'])->group(function () {
 
     // ── Administration ────────────────────────────────────────────────
-    Route::middleware('permission:administration.view')->group(function () {
+    Route::middleware('module:administration')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::resource('users', UserController::class)->parameters(['users' => 'user']);
     });
 
     // ── RH / Personnel ───────────────────────────────────────────────
-    Route::middleware('permission:rh.view')->group(function () {
+    Route::middleware('module:rh')->group(function () {
         Route::resource('compagnies', CompagnieController::class)->parameters(['compagnies' => 'compagnie']);
         Route::resource('agences', AgenceController::class)->parameters(['agences' => 'agence']);
         Route::resource('fonctions', FonctionController::class)->parameters(['fonctions' => 'fonction']);
@@ -97,7 +99,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ── Projets ───────────────────────────────────────────────────────
-    Route::middleware('permission:projets.view')->group(function () {
+    Route::middleware('module:projets')->group(function () {
         Route::resource('projects', ProjectController::class)->parameters(['projects' => 'project']);
         Route::get('projects/{project}/manage', [ProjectController::class, 'manage'])->name('projects.manage');
         Route::post('projects/{project}/taches', [ProjectController::class, 'storeTache'])->name('projects.taches.store');
@@ -117,20 +119,32 @@ Route::middleware(['auth'])->group(function () {
         ->name('taches-projects.status-inline')
         ->middleware('permission:projets.status');
 
-    // ── Contacts (accessible à tous les utilisateurs connectés, pas seulement Finance) ──
-    Route::get('contacts/search', [ContactController::class, 'search'])->name('contacts.search');
-    Route::resource('contacts', ContactController::class)->parameters(['contacts' => 'contact']);
+    // ── Contacts (transverse : ouvert à tout domaine métier, cf. ModulePermission) ──
+    Route::middleware('module:contacts')->group(function () {
+        Route::get('contacts/search', [ContactController::class, 'search'])->name('contacts.search');
+        Route::resource('contacts', ContactController::class)->parameters(['contacts' => 'contact']);
+    });
 
     // ── Finance ───────────────────────────────────────────────────────
-    Route::middleware('permission:finance.view')->group(function () {
+    Route::middleware('module:finance')->group(function () {
         Route::resource('banques', BanqueController::class)->parameters(['banques' => 'banque']);
         Route::resource('livrets-bancaires', LivretBancaireController::class)->parameters(['livrets-bancaires' => 'livretBancaire']);
 
         Route::get('factures/search', [FactureController::class, 'search'])->name('factures.search');
+        Route::get('factures/avoirs/nouveau', [FactureAvoirController::class, 'create'])->name('factures.avoirs.create');
+        Route::get('factures/{facture}/avoir', [FactureAvoirController::class, 'createDepuis'])->name('factures.avoirs.preparer');
+        Route::post('factures/{facture}/avoir', [FactureAvoirController::class, 'store'])->name('factures.avoirs.store');
         Route::resource('factures', FactureController::class)->parameters(['factures' => 'facture']);
         Route::get('factures/{facture}/manage', [FactureController::class, 'manage'])->name('factures.manage');
         Route::post('factures/{facture}/items', [FactureController::class, 'storeItem'])->name('factures.items.store');
         Route::delete('items-facture/{itemFacture}', [FactureController::class, 'destroyItem'])->name('factures.items.destroy');
+        Route::get('encaissements', [EncaissementController::class, 'index'])->name('encaissements.index');
+        Route::get('creances', [EncaissementController::class, 'creances'])->name('creances.index');
+        Route::get('encaissements/pdf', [EncaissementController::class, 'indexPdf'])->name('encaissements.pdf');
+        Route::get('creances/pdf', [EncaissementController::class, 'creancesPdf'])->name('creances.pdf');
+        Route::get('releves/{contact}/pdf', [EncaissementController::class, 'releve'])->name('releves.pdf');
+        Route::post('factures/{facture}/paiements', [FactureController::class, 'storePaiement'])->name('factures.paiements.store');
+        Route::delete('paiements-factures/{paiement}', [FactureController::class, 'destroyPaiement'])->name('factures.paiements.destroy');
         Route::post('factures/{facture}/tva', [FactureController::class, 'toggleTva'])->name('factures.tva.toggle');
         Route::post('factures/{facture}/centimes-additionnels', [FactureController::class, 'toggleCentimesAdditionnels'])->name('factures.centimes-additionnels.toggle');
         Route::get('factures/{facture}/pdf', [FacturePdfController::class, 'preview'])->name('factures.pdf');
@@ -159,6 +173,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('comptabilite/balance/pdf', [ComptabiliteRapportPdfController::class, 'balance'])->name('comptabilite.balance.pdf');
         Route::get('comptabilite/bilan/pdf', [ComptabiliteRapportPdfController::class, 'bilan'])->name('comptabilite.bilan.pdf');
         Route::get('comptabilite/resultat/pdf', [ComptabiliteRapportPdfController::class, 'resultat'])->name('comptabilite.resultat.pdf');
+        Route::get('comptabilite/grand-livre/pdf', [ComptabiliteRapportPdfController::class, 'grandLivre'])->name('comptabilite.grand-livre.pdf');
+        Route::get('comptabilite/journal/pdf', [ComptabiliteRapportPdfController::class, 'journal'])->name('comptabilite.journal.pdf');
     });
 
     Route::post('factures/{facture}/statut', [FactureController::class, 'updateStatut'])
@@ -178,7 +194,7 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:finance.depenses.valider');
 
     // ── Stock ─────────────────────────────────────────────────────────
-    Route::middleware('permission:stock.view')->group(function () {
+    Route::middleware('module:stock')->group(function () {
         Route::resource('categories-produits', CategorieProduitController::class)->parameters(['categories-produits' => 'categorieProduit']);
         Route::resource('depots', DepotController::class)->parameters(['depots' => 'depot']);
         Route::resource('produits', ProduitController::class)->parameters(['produits' => 'produit']);
@@ -192,13 +208,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('mouvements-stocks/{mouvement}/pdf', [StockPdfController::class, 'bonMouvement'])->name('mouvements-stocks.pdf');
     });
 
-    Route::middleware('permission:stock.create')->group(function () {
+    Route::middleware('module:stock')->group(function () {
         Route::get('mouvements-stocks/create', [MouvementStockController::class, 'create'])->name('mouvements-stocks.create');
         Route::post('mouvements-stocks', [MouvementStockController::class, 'store'])->name('mouvements-stocks.store');
     });
 
     // ── Archives ──────────────────────────────────────────────────────
-    Route::middleware('permission:archives.view')->group(function () {
+    Route::middleware('module:archives')->group(function () {
         Route::resource('categories-documents', CategorieDocumentController::class)->parameters(['categories-documents' => 'categoriesDocument']);
         Route::get('documents/{document}/preview', [DocumentController::class, 'preview'])->name('documents.preview');
         Route::get('documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');

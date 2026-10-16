@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\CloisonneParAgence;
 use App\Enums\StatusPayement;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PayementEmployee extends Model
 {
+    use CloisonneParAgence;
+
+    protected string $agenceParent = 'employee';
+
     protected $fillable = [
         'employee_id',
         'mois',

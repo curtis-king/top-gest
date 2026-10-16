@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\CloisonneParAgence;
 use App\Enums\ModePaiementDepense;
 use App\Enums\StatutDepense;
 use Illuminate\Database\Eloquent\Model;
@@ -9,6 +10,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Depense extends Model
 {
+    use CloisonneParAgence;
+
+    protected array $relationsCloisonnees = ['contact'];
+
     protected $table = 'depenses';
 
     protected $fillable = [

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\CloisonneParAgence;
 use App\Enums\StatusMatrimonial;
 use App\Enums\TypePiece;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Employee extends Model
 {
+    use CloisonneParAgence;
+
     protected $fillable = [
         'nom_complet',
         'adresse',

@@ -13,7 +13,7 @@
 
             <div style="margin-bottom:18px;">
                 <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">Nom du document <span style="color:#f87171;">*</span></label>
-                <input type="text" name="nom" value="{{ old('nom') }}" placeholder="Ex: Registre de commerce 2024"
+                <input type="text" name="nom" required value="{{ old('nom') }}" placeholder="Ex: Registre de commerce 2024"
                     style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#fff;outline:none;box-sizing:border-box;transition:all .25s;"
                     onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
                 @error('nom') <div style="color:#f87171;font-size:12px;margin-top:4px;">{{ $message }}</div> @enderror
@@ -21,7 +21,7 @@
 
             <div style="margin-bottom:18px;">
                 <label style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7);display:block;margin-bottom:6px;">Fichier <span style="color:#f87171;">*</span></label>
-                <input type="file" name="fichier" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff" id="fichierInput"
+                <input type="file" name="fichier" required accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff" id="fichierInput"
                     style="width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:rgba(255,255,255,.7);outline:none;box-sizing:border-box;cursor:pointer;"
                     onchange="previewFichier(this)">
                 <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px;">PDF, JPG, PNG, TIFF — max 20 Mo</div>

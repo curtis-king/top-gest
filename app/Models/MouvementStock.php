@@ -2,12 +2,19 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\CloisonneParAgence;
 use App\Enums\TypeMouvement;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MouvementStock extends Model
 {
+    use CloisonneParAgence;
+
+    protected string $agenceParent = 'depot';
+
+    protected array $relationsCloisonnees = ['facture'];
+
     protected $table = 'mouvements_stocks';
 
     protected $fillable = [

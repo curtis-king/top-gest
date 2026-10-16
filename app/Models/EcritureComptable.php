@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\CloisonneParAgence;
 use App\Enums\StatutEcriture;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EcritureComptable extends Model
 {
+    use CloisonneParAgence;
+
     protected $table = 'ecritures_comptables';
 
     protected $fillable = [

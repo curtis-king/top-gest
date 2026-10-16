@@ -2,11 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\CloisonneParAgence;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Retenu extends Model
 {
+    use CloisonneParAgence;
+
+    protected string $agenceParent = 'employee';
+
     protected $fillable = [
         'date_retenu',
         'motif',

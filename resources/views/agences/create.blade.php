@@ -53,7 +53,7 @@
 
             <div style="margin-bottom:18px;">
                 <label for="compagnie_id" style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px;">Compagnie</label>
-                <select id="compagnie_id" name="compagnie_id" style="width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:14px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.12)'" onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'">
+                <select id="compagnie_id" name="compagnie_id" required style="width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:14px;font-family:inherit;color:#fff;outline:none;transition:all .25s ease;" onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.12)'" onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'">
                     <option value="" style="color:#000;">Sélectionnez une compagnie</option>
                     @foreach($compagnies as $id => $name)
                         <option value="{{ $id }}" style="color:#000;" {{ old('compagnie_id') == $id ? 'selected' : '' }}>{{ $name }}</option>

@@ -55,7 +55,7 @@
             @csrf
             <div style="flex:1;">
                 <div class="mg-label" style="margin-bottom:4px;">Statut</div>
-                <select name="status_project" class="mg-select">
+                <select name="status_project" required class="mg-select">
                     @foreach($statuses as $st)
                         <option value="{{ $st->value }}" {{ $project->status_project?->value == $st->value ? 'selected' : '' }}>{{ $st->value }}</option>
                     @endforeach
@@ -127,7 +127,7 @@
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
                         <div>
                             <div class="mg-label" style="margin-bottom:4px;">Agence</div>
-                            <select name="agence_id" class="mg-select">
+                            <select name="agence_id" required class="mg-select">
                                 <option value="">Sélectionner</option>
                                 @foreach($agences as $id => $name)
                                     <option value="{{ $id }}">{{ $name }}</option>
@@ -141,7 +141,7 @@
                     </div>
                     <div style="margin-bottom:20px;">
                         <div class="mg-label" style="margin-bottom:4px;">Statut</div>
-                        <select name="status" class="mg-select">
+                        <select name="status" required class="mg-select">
                             @foreach($tacheStatuses as $st)
                                 <option value="{{ $st->value }}">{{ $st->value }}</option>
                             @endforeach
@@ -175,7 +175,7 @@
                         <form method="POST" action="{{ route('taches-projects.status-inline', $tache) }}" style="display:flex;gap:6px;align-items:center;">
                             @csrf
                             @method('PUT')
-                            <select name="status" class="mg-select" style="padding:5px 8px;font-size:11px;width:auto;">
+                            <select name="status" required class="mg-select" style="padding:5px 8px;font-size:11px;width:auto;">
                                 @foreach($tacheStatuses as $st)
                                     <option value="{{ $st->value }}" {{ $tache->status?->value == $st->value ? 'selected' : '' }}>{{ $st->value }}</option>
                                 @endforeach
