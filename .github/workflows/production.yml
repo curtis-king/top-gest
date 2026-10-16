@@ -1,0 +1,77 @@
+# Prépare la branche « production » que cPanel récupère (Git Version Control).
+#
+# L'hébergement mutualisé n'a ni Composer fiable ni Node : tout est préparé ici.
+# À chaque push sur main : tests, puis dépendances PHP de production (sans outils de dev),
+# puis publication du résultat, vendor/ compris, sur la branche production.
+# Le déploiement sur le serveur reste manuel : cPanel → Git Version Control → « Update from
+# Remote » puis « Deploy HEAD Commit » (voir DEPLOIEMENT.md et .cpanel.yml).
+
+name: Production (cPanel)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: production
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, gd, intl, bcmath, pdo_sqlite, zip
+          coverage: none
+
+      - name: Dépendances
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Configuration de test
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Tests
+        run: php artisan test
+
+  publier:
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, gd, intl, bcmath, zip
+          coverage: none
+
+      - name: Dépendances de production
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-progress
+
+      - name: Vérification du démarrage sans dépendances de développement
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan route:list > /dev/null
+          rm .env
+
+      - name: Publication sur la branche production
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan production
+          git rm -r -q --cached .
+          git add -A
+          git add -f vendor
+          git commit -q -m "Build de production ${GITHUB_SHA::7}"
+          git push -f origin production
